@@ -1,0 +1,65 @@
+ /* Header */
+ .main-header .logo {
+    font-size: 55px !important;
+    font-family: "Baskerville Old Face" !important;
+    color: #505f75 !important;
+    background-color: #76bfac !important;
+    height: 80px !important;
+    padding-top: 15px !important;
+}
+
+.main-header .navbar {
+    background-color: #76bfac;
+    min-height: 80px;
+}
+
+.main-header .sidebar-toggle {
+    font-size: 30px;
+}
+
+.navbar-custom-menu>.navbar-nav>li {
+    position: relative;
+    display: inline-flex;
+}
+
+.greetings{
+    font-family: 'Bahnschrift';
+    color: white;
+    font-size: large;
+    padding-top: 25px;
+}
+.profile_img{
+  padding-left: 20px;
+  padding-top: 5px;
+  height: 80px;
+}
+
+/* Body */
+.content-wrapper, .right-side {
+    background-color: #ecf3f1;
+}
+
+/* Side bar */
+.left-side, .main-sidebar {
+    background-color: #505f75;
+    top: 40px !important;
+}
+
+.sidebar-menu li>a {
+    position: relative;
+    background-color: #76bfac;
+    color: white;
+    border-top-width: 10px;
+    margin-top: 10px;
+    border-bottom-width: 10px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.sidebar-menu li.active>a {
+    background-color: #68a797;
+}
+.sidebar-menu li.hover>a {
+    background-color: #68a797;
+}
