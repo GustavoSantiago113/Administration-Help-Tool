@@ -14,6 +14,10 @@ library(shinyWidgets)
 library(shinythemes)
 library(shinyjs)
 library(shinyauthr)  # devtools::install_github("business-science/shinyauthr")
+library(DT)
+
+# Sources ----
+source("pages/inventoryControl.R")
 
 # UI ----
 ui <- tagList(
@@ -47,32 +51,31 @@ server <- function(input, output, session) {
                       ),
       dashboardSidebar(
         sidebarMenu(
-          menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+          menuInventory(),
           menuItem("Widgets", tabName = "widgets", icon = icon("th"))
         )
       ),
       dashboardBody(
         tabItems(
-      # First tab content
-      tabItem(tabName = "dashboard",
-        fluidRow(
-          box(plotOutput("plot1", height = 250)),
-
-          box(
-            title = "Controls",
-            sliderInput("slider", "Number of observations:", 1, 100, 50)
+          ### Inventory ----
+          inventoryControlMainPage(tabName = "inventoryControl"),
+          tabItem(tabName = "widgets",
+            h2("Widgets tab content")
           )
         )
-      ),
-
-      # Second tab content
-      tabItem(tabName = "widgets",
-        h2("Widgets tab content")
-      )
-    )
       )
     )
     
+  })
+  
+  ### Add inventory button ----
+  observeEvent(input$addInventory, {
+    addInventoryModal()
+  })
+  
+  ### Remove inventory button ----
+  observeEvent(input$removeInventory, {
+    removeInventoryModal()
   })
   
 }

@@ -39,6 +39,21 @@
     background-color: #ecf3f1;
 }
 
+h2{
+  font-family: "Baskerville Old Face" !important;
+  color: #505f75 !important;
+  font-size: 50px !important;
+}
+
+.btn-success {
+    background-color: #00a65a;
+    border-color: #008d4c;
+    color: white !important;
+}
+.btn-danger {
+    color: white !important;
+}
+
 /* Side bar */
 .left-side, .main-sidebar {
     background-color: #505f75;
@@ -55,11 +70,71 @@
     margin-bottom: 10px;
     margin-left: 10px;
     margin-right: 10px;
+    font-family: 'Bahnschrift';
+    font-size: 17px;
 }
 
 .sidebar-menu li.active>a {
     background-color: #68a797;
 }
-.sidebar-menu li.hover>a {
-    background-color: #68a797;
+
+/* Inventory Control */
+.mainInventoryControl{
+  background-color: white;
+  border-color: #767171;
+  border: 1px solid;
+  padding-top: 15px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.controleEstoqueDiv {
+  display: flex !important;
+}
+
+.shiny-input-container:not(.shiny-input-container-inline) {
+    width: 300px;
+    max-width: 100%;
+    transform: translateY(-20%);
+    margin-bottom: 0;
+}
+
+/* Modal */
+.modal-header {
+    background-color: #505f75;
+}
+
+.modal-title {
+    font-size: 30px;
+    color: white;
+    font-family: "Baskerville Old Face"
+}
+
+.modal-body {
+    background-color: #505f75;
+    font-family: 'Bahnschrift';
+    color: white;
+}
+
+.listItems{
+  display: inline-flex !important;
+  background-color: white;
+  padding-top: 15px;
+  padding-right: 10px;
+  padding-left: 10px;
+  margin-bottom: 5px;
+}
+
+.checkbox, .radio {
+    color: #68a797;
+    font-family: "Baskerville Old Face"
+    font-size: 20px;
+}
+
+.form-control {
+    border-radius: 0;
+    box-shadow: none;
+    border-color: #d2d6de;
+    margin-bottom: 10px;
 }
