@@ -89,9 +89,6 @@ h2{
   margin-left: 10px;
   margin-right: 10px;
 }
-.controleEstoqueDiv {
-  display: flex !important;
-}
 
 .shiny-input-container:not(.shiny-input-container-inline) {
     width: 300px;

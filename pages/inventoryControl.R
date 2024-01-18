@@ -32,34 +32,19 @@ inventoryControlMainPage <- function(tabName){
         class = "mainInventoryControl",
         width = 12,
         align = "center",
-        tags$div(
-          class = "controleEstoqueDiv",
-          actionButton(
-            inputId = "addInventory",
-            label = "Novo",
-            icon = icon("plus"),
-            style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
-          ),
-          actionButton(
-            inputId = "removeInventory",
-            label = "Excluir",
-            icon = icon("trash"),
-            style = "background-color: red; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
-          ),
-          actionButton(
-            inputId = "editInventory",
-            label = "Editar",
-            icon = icon("edit"),
-            style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
-          ),
-          searchInput(
-            inputId = "searchInventory",
-            label = "",
-            placeholder = "Pesquisar...",
-            btnSearch = icon("magnifying-glass"),
-            width = "300px",
-          )
+        actionButton(
+          inputId = "addInventory",
+          label = "Novo",
+          icon = icon("plus"),
+          style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
         ),
+        actionButton(
+          inputId = "removeInventory",
+          label = "Excluir",
+          icon = icon("trash"),
+          style = "background-color: red; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
+        ),
+        br(),
         DTOutput(
           outputId = "inventoryTable"
         )
@@ -125,46 +110,53 @@ addInventoryModal <- function(){
   ) %>% showModal()
 }
 
-## Remove modal ----
-removeInventoryModal <- function(){
-  modalDialog(
-    title = "Remover Produto",
-    size = "m",
-    easyClose = TRUE,
-    div(
-      searchInput(
-        inputId = "searchDeleteInventory",
-        label = "",
-        placeholder = "Pesquisar...",
-        btnSearch = icon("magnifying-glass"),
-        width = "300px",
-      ),
-      lapply(1:10, function(i) {
-        listItems(i, paste("Product", i))
-      }),
-      actionButton(inputId = "inventoryAdd", 
-                   label   = "Remover produtos do estoque", 
-                   class   = "btn-danger")
-    ),
-    
-    footer = NULL
-  ) %>% showModal()
+## Render Table ----
+renderInventory <- function(database){
+  
+  
+  
 }
 
-### List of Itens to exclude ----
-listItems <- function(itemNumber, productName){
-  tags$div(
-    class = "listItems",
-    checkboxInput(
-      inputId = paste("item", str(itemNumber)),
-      label = productName
-    ),
-    numericInput(
-      inputId = paste("item", str(itemNumber), "amount"),
-      label = NULL,
-      value = 0,
-      width = 80,
-      min = 0
-    )
-  )
+# Server ----
+
+## Render Table ----
+renderInventoryTable <- function(data){
+  DT::renderDataTable({
+    datatable(data,
+              editable = TRUE)
+  })
+}
+
+## Observe Events ----
+
+observeEventsInventory <- function(it, input, inventoryPath){
+  
+  ### Edit Row ----
+  observeEvent(input$inventoryTable_cell_edit, {
+    row  <- input$inventoryTable_cell_edit$row
+    clmn <- input$inventoryTable_cell_edit$col
+    it$data[row, clmn] <- input$inventoryTable_cell_edit$value
+    saveData(data = it$data,
+             filepath = inventoryPath)
+  })
+  
+  ### Delete row ----
+  observeEvent(input$removeInventory,{
+    if (!is.null(input$inventoryTable_rows_selected)) {
+      it$data <- it$data[-as.numeric(input$inventoryTable_rows_selected),]
+      saveData(data = it$data,
+               filepath = inventoryPath)
+    }
+  })
+  
+  ### Add inventory button ----
+  observeEvent(input$addInventory, {
+    addInventoryModal()
+  })
+  
+}
+
+## Save Data ----
+saveData <- function(data, filepath) {
+  write.csv(data, filepath, row.names = FALSE)
 }

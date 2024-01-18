@@ -19,6 +19,10 @@ library(DT)
 # Sources ----
 source("pages/inventoryControl.R")
 
+# Databases ----
+inventoryPath <- "data/estoque.csv"
+buys <- read.csv("data/compra.csv")
+
 # UI ----
 ui <- tagList(
   
@@ -50,33 +54,42 @@ server <- function(input, output, session) {
                                        src = "Profile.png"))
                       ),
       dashboardSidebar(
+        ### SideBar Menu ----
         sidebarMenu(
+          
+          #### Inventory ----
           menuInventory(),
+          
           menuItem("Widgets", tabName = "widgets", icon = icon("th"))
+          
         )
       ),
       dashboardBody(
+        ### Body ----
         tabItems(
-          ### Inventory ----
+          
+          #### Inventory ----
           inventoryControlMainPage(tabName = "inventoryControl"),
+          
           tabItem(tabName = "widgets",
-            h2("Widgets tab content")
+                  h2("Widgets tab content")
           )
+          
         )
       )
     )
     
   })
   
-  ### Add inventory button ----
-  observeEvent(input$addInventory, {
-    addInventoryModal()
-  })
+  ## Main Functions ----
   
-  ### Remove inventory button ----
-  observeEvent(input$removeInventory, {
-    removeInventoryModal()
-  })
+  ### Inventory table ----
+  
+  it <- reactiveValues(data = read.csv(inventoryPath), orig = read.csv(inventoryPath))
+  
+  output$inventoryTable <- renderInventoryTable(it$data)
+  
+  observeEventsInventory(it, input, inventoryPath)
   
 }
 
