@@ -15,13 +15,14 @@ library(shinythemes)
 library(shinyjs)
 library(shinyauthr)  # devtools::install_github("business-science/shinyauthr")
 library(DT)
+library(dplyr)
 
 # Sources ----
 source("pages/inventoryControl.R")
 
 # Databases ----
 inventoryPath <- "data/estoque.csv"
-buys <- read.csv("data/compra.csv")
+buysPath <- "data/compra.csv"
 
 # UI ----
 ui <- tagList(
@@ -54,7 +55,7 @@ server <- function(input, output, session) {
                                        src = "Profile.png"))
                       ),
       dashboardSidebar(
-        ### SideBar Menu ----
+        ### Side Bar Menu ----
         sidebarMenu(
           
           #### Inventory ----
@@ -83,13 +84,40 @@ server <- function(input, output, session) {
   
   ## Main Functions ----
   
-  ### Inventory table ----
+  ### Inventory ----
+  
+  #### Create reactive tables ----
   
   it <- reactiveValues(data = read.csv(inventoryPath), orig = read.csv(inventoryPath))
+  bt <- reactiveValues(data = read.csv(buysPath), orig = read.csv(buysPath))
   
-  output$inventoryTable <- renderInventoryTable(it$data)
+  #### Render reactive tables ----
+  output$inventoryTable <- render_inventory_table(it$data)
+  output$buyTable <- render_inventory_table(bt$data)
   
-  observeEventsInventory(it, input, inventoryPath)
+  #### Edit tables ----
+  observeEvent(input$inventoryTable_cell_edit, {edit_inventory(input, it, inventoryPath)})
+  observeEvent(input$buyTable_cell_edit, {edit_buy(input, bt, buysPath)})
+  
+  #### Remove Rows ----
+  observeEvent(input$removeInventory, {remove_inventory(input, it, inventoryPath)})
+  observeEvent(input$removeBuy, {remove_buy(input, bt, buysPath)})
+  
+  #### Add data -----
+  observeEvent(input$addInventory, {add_inventory_modal()})
+  
+  observeEvent(input$addBuy, {add_buy_modal()})
+  observeEvent(input$buyAdd, {addBuyFunction(name = input$nome,
+                                             amount = input$quantidade,
+                                             buyValue = input$valorCompra,
+                                             sellValue = input$valorVenda,
+                                             noteNumber = input$numeroNota,
+                                             seller = input$fornecedor,
+                                             buyDate = input$dataCompra,
+                                             category = input$categoria,
+                                             database = bt)
+  })
+  
   
 }
 
