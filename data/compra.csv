@@ -1,7 +1,10 @@
-﻿Nome,Quantidade,Valor de Compra,Valor de Venda,Data,Categoria,Nota,Fornecedor
-Coleira dog feliz,5,3,10,11/3/1998,Item,25647,Carlos
-Racao Premium dog,10,50,110,11/4/1998,Racao,6874,Manoel
-Racao shitty dog,15,20,60,11/5/1998,Racao,6541,Manoel
-Caminha,2,100,250,11/6/1998,Item,65876,Carlos
-Shampoo,25,1.5,10,11/7/1998,Usavel,69988,Joaquim
-Condicionador,20,2.6,12,11/8/1998,Usavel,89724,Joaquim
+"Nome","Quantidade","Valor.de.Compra","Valor.de.Venda","Data","Categoria","Nota","Fornecedor"
+"Falha de cobertura","45","2.3","14.2","19/01/2024","Banho e Tosa","5872","Cerginho"
+"Shampoo brilho garantido","18","5.78","15.95","1/16/1954","Banho e Tosa","57892","Giovanna"
+"Coleira cat bonito","3","2.3","5","1/16/1954","Roupinha","26587","Marcos"
+"Coleira cat","3","1.2","6","1/16/1954","Roupinha","65821","Marcos"
+"Coleira dog","5","3","10","11/3/1998","Item","25647","Carlos"
+"Racao Premium dog","10","50","110","11/4/1998","Racao","6874","Manoel"
+"Racao shitty dog","15","20","60","11/5/1998","Racao","6541","Manoel"
+"Caminha","24","100","250","11/6/1998","Item","65876","Carlos"
+"Condicionador","20","2.6","12","11/8/1998","Usavel","89724","Joaquim"

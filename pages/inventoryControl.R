@@ -102,12 +102,12 @@ add_buy_modal <- function(){
     div(
       style="z-index:1002",
       textInput(
-        inputId = "nome",
+        inputId = "nomeCompra",
         label = NULL,
         placeholder = "Nome"
       ),
       textInput(
-        inputId = "quantidade",
+        inputId = "quantidadeCompra",
         label = NULL,
         placeholder = "Quantidade"
       ),
@@ -134,12 +134,15 @@ add_buy_modal <- function(){
       dateInput(
         inputId = "dataCompra",
         label = "Data de compra",
-        language = "pt-BR"
+        language = "pt-BR",
+        format = "dd-mm-yyyy",
       ),
       selectInput(
-        inputId = "categoria",
+        inputId = "categoriaCompra",
         label = NULL,
-        choices = c("Racao", "Banho e Tosa", "Roupinha")
+        choices = c("Racao" = "Racao",
+                    "Banho e Tosa" = "Banho e Tosa",
+                    "Roupinha" = "Roupinha")
       ),
       actionButton(inputId = "buyAdd", 
                    label   = "Adicionar a compras", 
@@ -157,19 +160,21 @@ add_inventory_modal <- function(){
     div(
       style="z-index:1002",
       textInput(
-        inputId = "nome",
+        inputId = "nomeEstoque",
         label = NULL,
         placeholder = "Nome"
       ),
       textInput(
-        inputId = "quantidade",
+        inputId = "quantidadeEstoque",
         label = NULL,
         placeholder = "Quantidade"
       ),
       selectInput(
-        inputId = "categoria",
+        inputId = "categoriaEstoque",
         label = NULL,
-        choices = c("Racao", "Banho e Tosa", "Roupinha")
+        choices = c("Racao" = "Racao",
+                    "Banho e Tosa" = "Banho e Tosa",
+                    "Roupinha" = "Roupinha")
       ),
       actionButton(inputId = "inventoryAdd", 
                    label   = "Adicionar ao estoque", 
@@ -181,14 +186,6 @@ add_inventory_modal <- function(){
 }
 
 # Server ----
-
-## Render Tables ----
-render_inventory_table <- function(data){
-  DT::renderDataTable({
-    datatable(data,
-              editable = TRUE)
-  })
-}
 
 ## Observe Events ----
 
@@ -233,19 +230,52 @@ remove_buy <- function(input, bt, tablePath){
 
 ### Add data ----
 
-addBuyFunction <- function(database, name, amount, buyValue, sellValue, noteNumber, seller, buyDate, category){
+add_inventory <- function(database, name, amount, category, filePath){
+  
+  d <- c(Nome = name,
+         Quantidade = as.numeric(amount),
+         Categoria = category)
+  
+  database$data <- rbind(d, database$data)
+  
+  saveData(data = database$data,
+           filepath = filePath)
+  
+  removeModal()
+  
+}
+
+add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, seller, buyDate, category, filePath, inventoryDB, inventoryDBPath){
   
   d <- c(Nome = name,
          Quantidade = as.numeric(amount),
          Valor.de.Compra = as.numeric(buyValue),
          Valor.de.Venda = as.numeric(sellValue),
-         Data = buyDate,
+         Data = format(as.Date(buyDate), "%d/%m/%Y"),
          Categoria = category,
          Nota = as.numeric(noteNumber),
          Fornecedor = seller)
   
-  database$data <- rbind(database$data, d)
+  database$data <- rbind(d, database$data)
+  saveData(data = database$data,
+           filepath = filePath)
+
+  newDB <- c(Nome = name,
+             Quantidade = as.numeric(amount),
+             Categoria = category)
+
+  row_index <- which(inventoryDB$Nome == name)
+
+  if (length(row_index) > 0) {
+    inventoryDB$data$Quantidade[row_index] <- inventoryDB$data$Quantidade[row_index] + as.numeric(amount)
+  } else {
+    inventoryDB$data <- rbind(newDB, inventoryDB$data)
+  }
+
+  saveData(data = inventoryDB$data,
+           filepath = inventoryDBPath)
   
+  removeModal()
 }
 
 ## Save edits to Data ----

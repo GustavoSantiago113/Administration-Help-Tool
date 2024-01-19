@@ -5,7 +5,7 @@
 # APPLICATION DESCRIPTION ----
 # - Perform CRUD Operations
 # - Integrate database at several applications
-# - Tool to help a small business to visualize and controll their sales
+# - Tool to help a small business to visualize and control their sales
 
 # Libraries ----
 library(shiny)
@@ -92,8 +92,14 @@ server <- function(input, output, session) {
   bt <- reactiveValues(data = read.csv(buysPath), orig = read.csv(buysPath))
   
   #### Render reactive tables ----
-  output$inventoryTable <- render_inventory_table(it$data)
-  output$buyTable <- render_inventory_table(bt$data)
+  output$inventoryTable <- DT::renderDataTable({
+    datatable(it$data,
+              editable = TRUE)
+  })
+  output$buyTable <- DT::renderDataTable({
+    datatable(bt$data,
+              editable = TRUE)
+  })
   
   #### Edit tables ----
   observeEvent(input$inventoryTable_cell_edit, {edit_inventory(input, it, inventoryPath)})
@@ -105,17 +111,24 @@ server <- function(input, output, session) {
   
   #### Add data -----
   observeEvent(input$addInventory, {add_inventory_modal()})
-  
+  observeEvent(input$inventoryAdd, {add_inventory(database = it,
+                                                  name = input$nomeEstoque,
+                                                  amount = input$quantidadeEstoque,
+                                                  category = input$categoriaEstoque,
+                                                  filePath = inventoryPath)})
   observeEvent(input$addBuy, {add_buy_modal()})
-  observeEvent(input$buyAdd, {addBuyFunction(name = input$nome,
-                                             amount = input$quantidade,
-                                             buyValue = input$valorCompra,
-                                             sellValue = input$valorVenda,
-                                             noteNumber = input$numeroNota,
-                                             seller = input$fornecedor,
-                                             buyDate = input$dataCompra,
-                                             category = input$categoria,
-                                             database = bt)
+  observeEvent(input$buyAdd, {add_buy(name = input$nomeCompra,
+                                      amount = input$quantidadeCompra,
+                                      buyValue = input$valorCompra,
+                                      sellValue = input$valorVenda,
+                                      noteNumber = input$numeroNota,
+                                      seller = input$fornecedor,
+                                      buyDate = input$dataCompra,
+                                      category = input$categoriaCompra,
+                                      database = bt,
+                                      filePath = buysPath,
+                                      inventoryDB = it,
+                                      inventoryDBPath = inventoryPath)
   })
   
   
