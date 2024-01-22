@@ -19,6 +19,7 @@ library(dplyr)
 
 # Sources ----
 source("pages/inventoryControl.R")
+source("pages/calendar.R")
 
 # Databases ----
 inventoryPath <- "data/estoque.csv"
@@ -60,6 +61,8 @@ server <- function(input, output, session) {
           
           #### Inventory ----
           menuInventory(),
+          #### Calendar ----
+          menuCalendar(),
           
           menuItem("Widgets", tabName = "widgets", icon = icon("th"))
           
@@ -71,6 +74,8 @@ server <- function(input, output, session) {
           
           #### Inventory ----
           inventoryControlMainPage(tabName = "inventoryControl"),
+          #### Calendar ----
+          calendarMainPage(tabName = "calendar"),
           
           tabItem(tabName = "widgets",
                   h2("Widgets tab content")
@@ -130,6 +135,9 @@ server <- function(input, output, session) {
                                       inventoryDB = it,
                                       inventoryDBPath = inventoryPath)
   })
+  
+  ### Calendar ----
+  observeEvent(input$addEvent, {add_event_modal()})
   
   
 }

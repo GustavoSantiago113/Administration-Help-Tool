@@ -20,7 +20,7 @@ menuInventory <- function(){
 inventoryControlMainPage <- function(tabName){
   
   tabItem(
-    tabName = "inventoryControl",
+    tabName = tabName,
     tabsetPanel(
       tabPanel(
         title = "Compras",

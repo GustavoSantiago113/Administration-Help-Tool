@@ -54,6 +54,13 @@ h2{
     color: white !important;
 }
 
+.wrapper {
+    height: 100%;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: hidden !important;
+}
+
 /* Side bar */
 .left-side, .main-sidebar {
     background-color: #505f75;
@@ -134,4 +141,19 @@ h2{
     box-shadow: none;
     border-color: #d2d6de;
     margin-bottom: 10px;
+}
+
+/* Calendar */
+
+.toastui-calendar-day-view .toastui-calendar-panel:not(.toastui-calendar-time), .toastui-calendar-week-view .toastui-calendar-panel:not(.toastui-calendar-time) {
+  overflow-y: unset !important;
+}
+
+.toastui-calendar-panel.toastui-calendar-time {
+    overflow-y: auto;
+    height: 45vh !important;
+}
+.MuiOutlinedInput-input {
+    padding: 18.5px 14px;
+    color: white !important;
 }
