@@ -15,7 +15,7 @@ menuCalendar <- function(){
 }
 
 ## Main Page ----
-calendarMainPage <- function(tabName){
+calendarMainPage <- function(tabName, calendarData){
   
   tabItem(
     tabName = tabName,
@@ -38,7 +38,7 @@ calendarMainPage <- function(tabName){
         ),
       )
     ),
-    calendar(read.csv("data/calendario.csv"),
+    calendar(calendarData,
              view = "week",
              navigation = TRUE,
              defaultDate = Sys.Date(),
@@ -46,7 +46,8 @@ calendarMainPage <- function(tabName){
              isReadOnly = FALSE,
              navOpts = navigation_options(
                fmt_date = "DD/MM/YYYY",
-               sep_date = " - "
+               sep_date = " - ",
+               today_label = "Hoje"
              )) %>%
       cal_week_options(
         startDayOfWeek = 1,
@@ -115,4 +116,39 @@ add_event_modal <- function(){
     ),
     footer = NULL
   ) %>% showModal()
+}
+
+# Server ----
+
+## Observe Events ----
+
+### Add data ----
+
+add_event <- function(database, name, description, location, dateStart, dateEnd, color, category, filePath){
+  
+  ID <- tail(database$calendarId, n = 1)
+  
+  d <- c(calendarId = ID + 1,
+         title = name,
+         body = description,
+         start = dateStart,
+         end = dateEnd,
+         category = category,
+         location = location,
+         backgroundColor = color,
+         color = "#FFF")
+
+  database <- rbind(database, d)
+
+  saveData(data = database,
+           filepath = filePath)
+  
+  removeModal()
+  
+}
+
+## Save edits to Data ----
+
+saveData <- function(data, filepath) {
+  write.csv(data, filepath, row.names = FALSE)
 }

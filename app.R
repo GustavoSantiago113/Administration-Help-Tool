@@ -24,6 +24,7 @@ source("pages/calendar.R")
 # Databases ----
 inventoryPath <- "data/estoque.csv"
 buysPath <- "data/compra.csv"
+#calendarPath <- "data/calendario.csv"
 
 # UI ----
 ui <- tagList(
@@ -75,7 +76,7 @@ server <- function(input, output, session) {
           #### Inventory ----
           inventoryControlMainPage(tabName = "inventoryControl"),
           #### Calendar ----
-          calendarMainPage(tabName = "calendar"),
+          calendarMainPage(tabName = "calendar", calendarData = cl),
           
           tabItem(tabName = "widgets",
                   h2("Widgets tab content")
@@ -95,6 +96,7 @@ server <- function(input, output, session) {
   
   it <- reactiveValues(data = read.csv(inventoryPath), orig = read.csv(inventoryPath))
   bt <- reactiveValues(data = read.csv(buysPath), orig = read.csv(buysPath))
+  cl <- reactiveValues(data = read.csv(calendarPath), orig = read.csv(calendarPath))
   
   #### Render reactive tables ----
   output$inventoryTable <- DT::renderDataTable({
@@ -137,7 +139,16 @@ server <- function(input, output, session) {
   })
   
   ### Calendar ----
-  observeEvent(input$addEvent, {add_event_modal()})
+  # observeEvent(input$addEvent, {add_event_modal()})
+  # observeEvent(input$eventAdd, {add_event(database = cl$data,
+  #                                         name = input$calendarName,
+  #                                         description = input$calendarDescription,
+  #                                         location = input$calendarLocation,
+  #                                         dateStart = input$calendarStart,
+  #                                         dateEnd = input$calendarEnd,
+  #                                         color = input$calendarColor,
+  #                                         category = input$calendar,
+  #                                         filePath = calendarPath)})
   
   
 }
