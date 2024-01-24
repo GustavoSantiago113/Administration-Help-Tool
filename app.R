@@ -24,7 +24,7 @@ source("pages/calendar.R")
 # Databases ----
 inventoryPath <- "data/estoque.csv"
 buysPath <- "data/compra.csv"
-#calendarPath <- "data/calendario.csv"
+calendarPath <- "data/calendario.csv"
 
 # UI ----
 ui <- tagList(
@@ -76,7 +76,7 @@ server <- function(input, output, session) {
           #### Inventory ----
           inventoryControlMainPage(tabName = "inventoryControl"),
           #### Calendar ----
-          calendarMainPage(tabName = "calendar", calendarData = cl),
+          calendarMainPage(tabName = "calendar"),
           
           tabItem(tabName = "widgets",
                   h2("Widgets tab content")
@@ -94,9 +94,9 @@ server <- function(input, output, session) {
   
   #### Create reactive tables ----
   
-  it <- reactiveValues(data = read.csv(inventoryPath), orig = read.csv(inventoryPath))
-  bt <- reactiveValues(data = read.csv(buysPath), orig = read.csv(buysPath))
-  cl <- reactiveValues(data = read.csv(calendarPath), orig = read.csv(calendarPath))
+  it <- reactiveValues(data = read.csv(inventoryPath), orig = read.csv(inventoryPath)) # Inventory
+  bt <- reactiveValues(data = read.csv(buysPath), orig = read.csv(buysPath)) # Buyings
+  cl <- reactiveValues(data = read.csv(calendarPath), orig = read.csv(calendarPath)) # Calendar
   
   #### Render reactive tables ----
   output$inventoryTable <- DT::renderDataTable({
@@ -139,16 +139,20 @@ server <- function(input, output, session) {
   })
   
   ### Calendar ----
-  # observeEvent(input$addEvent, {add_event_modal()})
-  # observeEvent(input$eventAdd, {add_event(database = cl$data,
-  #                                         name = input$calendarName,
-  #                                         description = input$calendarDescription,
-  #                                         location = input$calendarLocation,
-  #                                         dateStart = input$calendarStart,
-  #                                         dateEnd = input$calendarEnd,
-  #                                         color = input$calendarColor,
-  #                                         category = input$calendar,
-  #                                         filePath = calendarPath)})
+  output$my_calendar <- renderCalendar({render_calendar(cl$data)})
+  observeEvent(input$addEvent, {add_event_modal()})
+  observeEvent(input$eventAdd,{add_calendar(filePath = calendarPath,
+                                           database = cl,
+                                           calendarName = input$calendarName,
+                                           calendarDescription = input$calendarDescription,
+                                           calendarStart = input$calendarStart,
+                                           calendarEnd = input$calendarEnd,
+                                           calendarCategory = input$calendarCategory,
+                                           calendarLocation = input$calendarLocation,
+                                           calendarColor = input$calendarColor)
+  }) # Add
+  observeEvent(input$my_calendar_update, {edit_calendar(input)}) # Edit
+  observeEvent(input$my_calendar_delete, {remove_calendar(input)}) # Remove
   
   
 }

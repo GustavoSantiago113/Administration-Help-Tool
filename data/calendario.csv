@@ -1,0 +1,7 @@
+"calendarId","title","body","start","end","category","location","backgroundColor","color"
+1,"Teste","Esse e um teste","1/23/2024 11:00","1/23/2024 12:00","time","Casa","#32a852","#FFF"
+2,"Evento pica","Esse evento vai ser pica","1706122800","1706126400","Aqui em casa","#4D4D4D","#FFF","2"
+3,"Polenta","Polentar muito","1706054400","1706054700","time","Aqui em casa","#E5E5E5","#FFF"
+4,"Ultimo teste","Esse e o ultimo teste antes do almoco","2024-01-23 12:00:00","2024-01-23 13:00:00","time","Meu computador","#FF6A6A","#FFF"
+5,"Teste dia todo","Esse e um teste para o dia todo","2024-01-23 12:00:00","2024-01-23","allday","Aqui em casa","#00FF00","#FFF"
+6,"Teste","Teste2","2024-01-23 18:30:00","2024-01-23 22:30:00","time","Teste1","#FF7F00","#FFF"

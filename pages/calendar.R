@@ -15,7 +15,7 @@ menuCalendar <- function(){
 }
 
 ## Main Page ----
-calendarMainPage <- function(tabName, calendarData){
+calendarMainPage <- function(tabName){
   
   tabItem(
     tabName = tabName,
@@ -38,22 +38,7 @@ calendarMainPage <- function(tabName, calendarData){
         ),
       )
     ),
-    calendar(calendarData,
-             view = "week",
-             navigation = TRUE,
-             defaultDate = Sys.Date(),
-             useCreationPopup = TRUE,
-             isReadOnly = FALSE,
-             navOpts = navigation_options(
-               fmt_date = "DD/MM/YYYY",
-               sep_date = " - ",
-               today_label = "Hoje"
-             )) %>%
-      cal_week_options(
-        startDayOfWeek = 1,
-        workweek = FALSE,
-        daynames = c("Dom", "Seg", "Ter", "Quar", "Quin", "Sex", "Sab")
-      )
+    calendarOutput("my_calendar")
   )
   
 }
@@ -120,31 +105,62 @@ add_event_modal <- function(){
 
 # Server ----
 
+## Render Calendar ----
+render_calendar <- function(calendarData){
+  cal <- calendar(calendarData,
+                  view = "week",
+                  navigation = TRUE,
+                  defaultDate = Sys.Date(),
+                  useCreationPopup = TRUE,
+                  isReadOnly = FALSE,
+                  navOpts = navigation_options(
+                    fmt_date = "DD/MM/YYYY",
+                    sep_date = " - ",
+                    today_label = "Hoje"
+                  )) %>%
+    cal_week_options(
+      startDayOfWeek = 1,
+      workweek = FALSE,
+      daynames = c("Dom", "Seg", "Ter", "Quar", "Quin", "Sex", "Sab")
+    )
+}
+
 ## Observe Events ----
 
-### Add data ----
-
-add_event <- function(database, name, description, location, dateStart, dateEnd, color, category, filePath){
+### Add event ----
+add_calendar <- function(filePath, database, calendarName, calendarDescription, calendarStart, calendarEnd, calendarCategory, calendarLocation, calendarColor) {
   
-  ID <- tail(database$calendarId, n = 1)
+  ID <- tail(database$data$calendarId, n = 1)
   
-  d <- c(calendarId = ID + 1,
-         title = name,
-         body = description,
-         start = dateStart,
-         end = dateEnd,
-         category = category,
-         location = location,
-         backgroundColor = color,
-         color = "#FFF")
-
-  database <- rbind(database, d)
-
-  saveData(data = database,
+  new_schedule <- list(
+    calendarId = ID + 1,
+    title = calendarName,
+    body = calendarDescription,
+    start = as.character(calendarStart),
+    end = as.character(calendarEnd),
+    category = calendarCategory,
+    location = calendarLocation,
+    backgroundColor = calendarColor,
+    color = "#FFF"
+  )
+  print(new_schedule)
+  
+  database$data <- rbind(database$data, new_schedule)
+  
+  saveData(data = database$data,
            filepath = filePath)
   
   removeModal()
-  
+}
+
+### Edit event ----
+edit_calendar <- function(input){
+  cal_proxy_update("my_calendar", input$my_calendar_update)
+}
+
+### Remove event ----
+remove_calendar <- function(input){
+  cal_proxy_delete("my_calendar", input$my_calendar_delete)
 }
 
 ## Save edits to Data ----
