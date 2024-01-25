@@ -92,8 +92,8 @@ add_event_modal <- function(){
       selectInput(
         inputId = "calendarCategory",
         label = "Dia todo?",
-        choices = c("Nao" = "time",
-                    "Sim" = "allday")
+        choices = c("Nao" = "FALSE",
+                    "Sim" = "TRUE")
       ),
       actionButton(inputId = "eventAdd", 
                    label   = "Criar evento", 
@@ -138,7 +138,7 @@ add_calendar <- function(filePath, database, calendarName, calendarDescription, 
     body = calendarDescription,
     start = as.character(calendarStart),
     end = as.character(calendarEnd),
-    category = calendarCategory,
+    isAllday = calendarCategory,
     location = calendarLocation,
     backgroundColor = calendarColor,
     color = "#FFF"
@@ -154,13 +154,40 @@ add_calendar <- function(filePath, database, calendarName, calendarDescription, 
 }
 
 ### Edit event ----
-edit_calendar <- function(input){
+edit_calendar <- function(input, database, filePath){
+  
   cal_proxy_update("my_calendar", input$my_calendar_update)
+  
+  values <- input$my_calendar_update$schedule
+  id <- values$calendarId
+  row_to_update <- which(database$data$calendarId == id)
+  
+  changes <- input$my_calendar_update$changes
+  
+  if (length(row_to_update) > 0) {
+    
+    database$data[row_to_update, "title"] <- ifelse(exists("title", changes), changes$title, database$data[row_to_update, "title"])
+    database$data[row_to_update, "start"] <- ifelse(exists("start", changes), changes$start, database$data[row_to_update, "start"])
+    database$data[row_to_update, "end"] <- ifelse(exists("end", changes), changes$end, database$data[row_to_update, "end"])
+    database$data[row_to_update, "isAllday"] <- ifelse(exists("isAllday", changes), changes$isAllday, database$data[row_to_update, "isAllday"])
+    database$data[row_to_update, "location"] <- ifelse(exists("location", changes), changes$location, database$data[row_to_update, "location"])
+    
+    saveData(database$data, filePath)
+  } else {
+    print("Row not found.")
+  }
 }
 
 ### Remove event ----
-remove_calendar <- function(input){
+remove_calendar <- function(input, database, filePath){
   cal_proxy_delete("my_calendar", input$my_calendar_delete)
+  
+  values <- input$my_calendar_delete
+  id <- values$calendarId
+  row_to_delete <- which(database$data$calendarId == id)
+  database$data <- database$data[-row_to_delete,]
+
+  saveData(database$data, filePath)
 }
 
 ## Save edits to Data ----

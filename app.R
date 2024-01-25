@@ -13,7 +13,6 @@ library(shinydashboard)
 library(shinyWidgets)
 library(shinythemes)
 library(shinyjs)
-library(shinyauthr)  # devtools::install_github("business-science/shinyauthr")
 library(DT)
 library(dplyr)
 
@@ -151,8 +150,8 @@ server <- function(input, output, session) {
                                            calendarLocation = input$calendarLocation,
                                            calendarColor = input$calendarColor)
   }) # Add
-  observeEvent(input$my_calendar_update, {edit_calendar(input)}) # Edit
-  observeEvent(input$my_calendar_delete, {remove_calendar(input)}) # Remove
+  observeEvent(input$my_calendar_update, {edit_calendar(input, cl, calendarPath)}) # Edit
+  observeEvent(input$my_calendar_delete, {remove_calendar(input, cl, calendarPath)}) # Remove
   
   
 }
