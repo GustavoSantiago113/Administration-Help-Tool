@@ -19,6 +19,7 @@ library(dplyr)
 # Sources ----
 source("pages/inventoryControl.R")
 source("pages/calendar.R")
+source("pages/simulator.R")
 
 # Databases ----
 inventoryPath <- "data/estoque.csv"
@@ -63,6 +64,8 @@ server <- function(input, output, session) {
           menuInventory(),
           #### Calendar ----
           menuCalendar(),
+          #### Simulator ----
+          menuSimulator(),
           
           menuItem("Widgets", tabName = "widgets", icon = icon("th"))
           
@@ -76,6 +79,8 @@ server <- function(input, output, session) {
           inventoryControlMainPage(tabName = "inventoryControl"),
           #### Calendar ----
           calendarMainPage(tabName = "calendar"),
+          #### Simulator ----
+          simulatorMainPage(tabName = "simulator"),
           
           tabItem(tabName = "widgets",
                   h2("Widgets tab content")

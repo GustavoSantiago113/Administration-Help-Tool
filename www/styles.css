@@ -45,6 +45,12 @@ h2{
   font-size: 50px !important;
 }
 
+h3{
+  margin-top: 0px;
+  font-family: 'Bahnschrift';
+  color: #505f75 !important;
+}
+
 .btn-success {
     background-color: #00a65a;
     border-color: #008d4c;
@@ -156,4 +162,13 @@ h2{
 .MuiOutlinedInput-input {
     padding: 18.5px 14px;
     color: white !important;
+}
+
+/* Simulator */
+.simulador{
+  background-color: #76bfac;
+  color: #505f75;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 15px;
 }
