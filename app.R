@@ -101,6 +101,11 @@ server <- function(input, output, session) {
   it <- reactiveValues(data = read.csv(inventoryPath), orig = read.csv(inventoryPath)) # Inventory
   bt <- reactiveValues(data = read.csv(buysPath), orig = read.csv(buysPath)) # Buyings
   cl <- reactiveValues(data = read.csv(calendarPath), orig = read.csv(calendarPath)) # Calendar
+  counter <- reactiveValues(n = 0) # Track the number of input boxes to render
+  # Track all user inputs
+  AllInputs <- reactive({
+    x <- reactiveValuesToList(input)
+  }) 
   
   #### Render reactive tables ----
   output$inventoryTable <- DT::renderDataTable({
@@ -158,6 +163,13 @@ server <- function(input, output, session) {
   observeEvent(input$my_calendar_update, {edit_calendar(input, cl, calendarPath)}) # Edit
   observeEvent(input$my_calendar_delete, {remove_calendar(input, cl, calendarPath)}) # Remove
   
+  ### Simulator ----
+  observeEvent(input$inputsAdd, {add_Input(counter)})
+  observeEvent(input$inputsRemove, {remove_Input(counter)})
+  textboxes <- reactive({dynamic_Inputs(counter, AllInputs())})
+  output$extraInputs <- renderUI({ textboxes() })
+  output$simuladorServico <- renderUI({ simulador_servico() })
+  output$simuladorProduto <- renderUI({ simulador_produto() })
   
 }
 

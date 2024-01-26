@@ -47,7 +47,12 @@ h2{
 
 h3{
   margin-top: 0px;
-  font-family: 'Bahnschrift';
+  font-family: 'Bahnschrift' !important;
+  color: #505f75 !important;
+}
+
+h4{
+  font-family: 'Bahnschrift' !important;
   color: #505f75 !important;
 }
 
@@ -171,4 +176,10 @@ h3{
   border-radius: 5px;
   padding: 10px;
   margin: 15px;
+}
+.simuladorOutput{
+  font-family: 'Bahnschrift';
+  color: white;
+  font-size: 20px;
+  margin-top: 15px;
 }
