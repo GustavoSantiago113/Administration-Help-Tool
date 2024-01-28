@@ -136,16 +136,45 @@ dynamic_Inputs <- function(counter, AllInputs){
 }
 
 ## Dynamic outputs -----
-simulador_servico <- function(){
-  tags$p(
-    class = "simuladorOutput",
-    paste("Valor de venda:", 45)
-  )
+soma_preco <- function(counter, input, maodeobraSimulador, lucroSimulador, impostoSimulador){
+  inputValues <- lapply(seq_len(counter$n), function(i) {
+    
+    precoLista = input[[paste0("precoLista", i)]]
+    quantidadeLista = input[[paste0("quantidadeLista", i)]]
+    
+    list(
+      precoCusto <- precoLista*quantidadeLista
+    )
+  })
+  
+  total_cost <- sum(unlist(inputValues)) + maodeobraSimulador
+  lucro <- total_cost + (total_cost * (lucroSimulador/100))
+  preco_final <- lucro + (lucro * (impostoSimulador/100))
+  return(preco_final)
+}
+output_preco <- function(preco_final){
+  if(is.na(preco_final)){
+    tags$p(
+      class = "simuladorOutput",
+      "Não há dados suficientes para calcular o valor de venda."
+    )
+  }
+  else{
+    tags$p(
+      class = "simuladorOutput",
+      paste("Valor de venda:", preco_final)
+    )
+  }
 }
 
-simulador_produto <- function(){
+simulador_produto <- function(novoCustoSimulador, impostoSimulador1, lucroSimulador1){
+  
+  valorDeVenda <- ( novoCustoSimulador + (novoCustoSimulador * (lucroSimulador1/100) ) ) 
+  
+  valorDeVenda_imposto <- valorDeVenda + ( valorDeVenda * (impostoSimulador1/100) )
+  
   tags$p(
     class = "simuladorOutput",
-    paste("Valor de venda:", 45)
+    paste("Valor de venda:", valorDeVenda_imposto)
   )
 }

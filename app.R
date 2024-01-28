@@ -168,8 +168,16 @@ server <- function(input, output, session) {
   observeEvent(input$inputsRemove, {remove_Input(counter)})
   textboxes <- reactive({dynamic_Inputs(counter, AllInputs())})
   output$extraInputs <- renderUI({ textboxes() })
-  output$simuladorServico <- renderUI({ simulador_servico() })
-  output$simuladorProduto <- renderUI({ simulador_produto() })
+  
+  observe({
+    preco_final <- soma_preco(counter, input, input$maodeobraSimulador, input$lucroSimulador, input$impostoSimulador)
+    output$simuladorServico <- renderUI({output_preco(preco_final)})
+    
+  })
+  
+  output$simuladorProduto <- renderUI({ simulador_produto(input$novoCustoSimulador,
+                                                          input$impostoSimulador1,
+                                                          input$lucroSimulador1) })
   
 }
 
