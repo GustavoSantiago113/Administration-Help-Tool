@@ -20,11 +20,14 @@ library(dplyr)
 source("pages/inventoryControl.R")
 source("pages/calendar.R")
 source("pages/simulator.R")
+source("pages/cliente_plano.R")
 
 # Databases ----
 inventoryPath <- "data/estoque.csv"
 buysPath <- "data/compra.csv"
 calendarPath <- "data/calendario.csv"
+clientsPath <- "data/clientes.csv"
+plansPath <- "data/planos.csv"
 
 # UI ----
 ui <- tagList(
@@ -66,6 +69,8 @@ server <- function(input, output, session) {
           menuCalendar(),
           #### Simulator ----
           menuSimulator(),
+          #### Clients and Plans ----
+          clientePlano(),
           
           menuItem("Widgets", tabName = "widgets", icon = icon("th"))
           
@@ -81,6 +86,8 @@ server <- function(input, output, session) {
           calendarMainPage(tabName = "calendar"),
           #### Simulator ----
           simulatorMainPage(tabName = "simulator"),
+          #### Clients and Plans ----
+          clients_and_plans_MainPage(tabName = "clientePlano"),
           
           tabItem(tabName = "widgets",
                   h2("Widgets tab content")
@@ -100,12 +107,6 @@ server <- function(input, output, session) {
   
   it <- reactiveValues(data = read.csv(inventoryPath), orig = read.csv(inventoryPath)) # Inventory
   bt <- reactiveValues(data = read.csv(buysPath), orig = read.csv(buysPath)) # Buyings
-  cl <- reactiveValues(data = read.csv(calendarPath), orig = read.csv(calendarPath)) # Calendar
-  counter <- reactiveValues(n = 0) # Track the number of input boxes to render
-  # Track all user inputs
-  AllInputs <- reactive({
-    x <- reactiveValuesToList(input)
-  }) 
   
   #### Render reactive tables ----
   output$inventoryTable <- DT::renderDataTable({
@@ -148,7 +149,14 @@ server <- function(input, output, session) {
   })
   
   ### Calendar ----
+  
+  #### Create reactive tables ----
+  cl <- reactiveValues(data = read.csv(calendarPath), orig = read.csv(calendarPath))
+  
+  #### Render reactive calendar ----
   output$my_calendar <- renderCalendar({render_calendar(cl$data)})
+  
+  #### Add event -----
   observeEvent(input$addEvent, {add_event_modal()})
   observeEvent(input$eventAdd,{add_calendar(filePath = calendarPath,
                                            database = cl,
@@ -159,25 +167,62 @@ server <- function(input, output, session) {
                                            calendarCategory = input$calendarCategory,
                                            calendarLocation = input$calendarLocation,
                                            calendarColor = input$calendarColor)
-  }) # Add
-  observeEvent(input$my_calendar_update, {edit_calendar(input, cl, calendarPath)}) # Edit
-  observeEvent(input$my_calendar_delete, {remove_calendar(input, cl, calendarPath)}) # Remove
+  })
+  
+  #### Edit event ----
+  observeEvent(input$my_calendar_update, {edit_calendar(input, cl, calendarPath)})
+  
+  #### Remove event ----
+  observeEvent(input$my_calendar_delete, {remove_calendar(input, cl, calendarPath)})
   
   ### Simulator ----
+  
+  #### Creating reactive variables ----
+  counter <- reactiveValues(n = 0) # Track the number of input boxes to render
+  # Track all user inputs
+  AllInputs <- reactive({
+    x <- reactiveValuesToList(input)
+  })
+  
+  #### Add inputs ----
   observeEvent(input$inputsAdd, {add_Input(counter)})
-  observeEvent(input$inputsRemove, {remove_Input(counter)})
   textboxes <- reactive({dynamic_Inputs(counter, AllInputs())})
   output$extraInputs <- renderUI({ textboxes() })
   
+  ### Remove inputs ----
+  observeEvent(input$inputsRemove, {remove_Input(counter)})
+  
+  #### Calculating prices ----
   observe({
     preco_final <- soma_preco(counter, input, input$maodeobraSimulador, input$lucroSimulador, input$impostoSimulador)
     output$simuladorServico <- renderUI({output_preco(preco_final)})
     
   })
-  
   output$simuladorProduto <- renderUI({ simulador_produto(input$novoCustoSimulador,
                                                           input$impostoSimulador1,
                                                           input$lucroSimulador1) })
+  
+  ### Client and plans ----
+  
+  #### Reactive variables ----
+  ct <- reactiveValues(data = read.csv(clientsPath), orig = read.csv(clientsPath)) # Inventory
+  pt <- reactiveValues(data = read.csv(plansPath), orig = read.csv(plansPath)) # Buyings
+  
+  #### Render reactive tables ----
+  output$clientsTable <- DT::renderDataTable({
+    datatable(ct$data,
+              editable = TRUE)
+  })
+  output$plansTable <- DT::renderDataTable({
+    datatable(pt$data,
+              editable = TRUE)
+  })
+  
+  #### Add data ----
+  observeEvent(input$addClients, {add_client_modal()})
+  
+  observeEvent(input$addPlans, {add_plan_modal()})
+  
   
 }
 
