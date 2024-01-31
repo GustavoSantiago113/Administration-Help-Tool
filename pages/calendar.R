@@ -107,28 +107,30 @@ add_event_modal <- function(){
 
 ## Render Calendar ----
 render_calendar <- function(calendarData){
-  cal <- calendar(calendarData,
+  cal <- toastui::calendar(calendarData,
                   view = "week",
                   navigation = TRUE,
                   defaultDate = Sys.Date(),
                   useCreationPopup = TRUE,
                   isReadOnly = FALSE,
-                  navOpts = navigation_options(
+                  navOpts = toastui::navigation_options(
                     fmt_date = "DD/MM/YYYY",
                     sep_date = " - ",
                     today_label = "Hoje"
-                  )) %>%
-    cal_week_options(
+                  )
+                  ) %>%
+    toastui::cal_week_options(
       startDayOfWeek = 1,
       workweek = FALSE,
       daynames = c("Dom", "Seg", "Ter", "Quar", "Quin", "Sex", "Sab")
     )
+  return(cal)
 }
 
 ## Observe Events ----
 
 ### Add event ----
-add_calendar <- function(filePath, database, calendarName, calendarDescription, calendarStart, calendarEnd, calendarCategory, calendarLocation, calendarColor) {
+add_calendar <- function(filePath, database, calendarName, calendarDescription, calendarStart, calendarEnd, calendarCategory, calendarLocation, calendarColor, recurrency) {
   
   ID <- tail(database$data$calendarId, n = 1)
   
@@ -141,9 +143,9 @@ add_calendar <- function(filePath, database, calendarName, calendarDescription, 
     isAllday = calendarCategory,
     location = calendarLocation,
     backgroundColor = calendarColor,
-    color = "#FFF"
+    color = "#FFF",
+    recurrenceRule = recurrency
   )
-  print(new_schedule)
   
   database$data <- rbind(database$data, new_schedule)
   

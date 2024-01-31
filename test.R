@@ -58,7 +58,7 @@ server <- function(input, output, session) {
                                      "Ola, Usuario"),
                               tags$img(class = "profile_img",
                                        src = "Profile.png"))
-                      ),
+      ),
       dashboardSidebar(
         ### Side Bar Menu ----
         sidebarMenu(
@@ -159,15 +159,14 @@ server <- function(input, output, session) {
   #### Add event -----
   observeEvent(input$addEvent, {add_event_modal()})
   observeEvent(input$eventAdd,{add_calendar(filePath = calendarPath,
-                                           database = cl,
-                                           calendarName = input$calendarName,
-                                           calendarDescription = input$calendarDescription,
-                                           calendarStart = input$calendarStart,
-                                           calendarEnd = input$calendarEnd,
-                                           calendarCategory = input$calendarCategory,
-                                           calendarLocation = input$calendarLocation,
-                                           calendarColor = input$calendarColor,
-                                           recurrency = NA)
+                                            database = cl,
+                                            calendarName = input$calendarName,
+                                            calendarDescription = input$calendarDescription,
+                                            calendarStart = input$calendarStart,
+                                            calendarEnd = input$calendarEnd,
+                                            calendarCategory = input$calendarCategory,
+                                            calendarLocation = input$calendarLocation,
+                                            calendarColor = input$calendarColor)
   })
   
   #### Edit event ----
@@ -206,8 +205,8 @@ server <- function(input, output, session) {
   ### Client and plans ----
   
   #### Reactive variables ----
-  ct <- reactiveValues(data = read.csv(clientsPath), orig = read.csv(clientsPath))
-  pt <- reactiveValues(data = read.csv(plansPath), orig = read.csv(plansPath))
+  ct <- reactiveValues(data = read.csv(clientsPath), orig = read.csv(clientsPath)) # Inventory
+  pt <- reactiveValues(data = read.csv(plansPath), orig = read.csv(plansPath)) # Buyings
   
   #### Render reactive tables ----
   output$clientsTable <- DT::renderDataTable({
@@ -221,37 +220,9 @@ server <- function(input, output, session) {
   
   #### Add data ----
   observeEvent(input$addClients, {add_client_modal()})
-  observeEvent(input$clientAdd, {add_clients(database = ct,
-                                             filePath = clientsPath,
-                                             nomeAnimal = input$nomeAnimal,
-                                             nomeTutor = input$nomeTutor,
-                                             aniversarioAnimal = input$aniversarioAnimal,
-                                             aniversarioCliente = input$aniversarioCliente,
-                                             clienteDesde = input$clienteDesde,
-                                             contatoCliente = input$contatoCliente,
-                                             porteAnimal = input$porteAnimal,
-                                             planoCliente = input$planoCliente,
-                                             calendarDB = cl,
-                                             calendarFilePath = calendarPath
-                                             )
-  })
+  
   observeEvent(input$addPlans, {add_plan_modal()})
-  observeEvent(input$planAdd, {add_plans(database = pt,
-                                         filePath = plansPath,
-                                         nomePlano = input$nomePlano,
-                                         valorVendaPlano = input$valorVendaPlano,
-                                         custoPlano = input$custoPlano,
-                                         numeroDeVisitas = input$numeroDeVisitas,
-                                         descicaoPlano = input$descicaoPlano)
-    })
   
-  #### Edit tables ----
-  observeEvent(input$clientsTable_cell_edit, {edit_client(input, ct, clientsPath)})
-  observeEvent(input$plansTable_cell_edit, {edit_plan(input, pt, plansPath)})
-  
-  #### Remove Rows ----
-  observeEvent(input$removeClients, {remove_client(input, ct, clientsPath)})
-  observeEvent(input$removePlans, {remove_plan(input, pt, plansPath)})
   
 }
 
