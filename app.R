@@ -167,7 +167,8 @@ server <- function(input, output, session) {
                                            calendarCategory = input$calendarCategory,
                                            calendarLocation = input$calendarLocation,
                                            calendarColor = input$calendarColor,
-                                           recurrency = NA)
+                                           recurrency = NA,
+                                           clientId = NA)
   })
   
   #### Edit event ----
@@ -246,11 +247,11 @@ server <- function(input, output, session) {
     })
   
   #### Edit tables ----
-  observeEvent(input$clientsTable_cell_edit, {edit_client(input, ct, clientsPath)})
+  observeEvent(input$clientsTable_cell_edit, {edit_client(input, ct, clientsPath, cl, calendarPath)})
   observeEvent(input$plansTable_cell_edit, {edit_plan(input, pt, plansPath)})
   
   #### Remove Rows ----
-  observeEvent(input$removeClients, {remove_client(input, ct, clientsPath)})
+  observeEvent(input$removeClients, {remove_client(input, ct, clientsPath, cl, calendarPath)})
   observeEvent(input$removePlans, {remove_plan(input, pt, plansPath)})
   
 }

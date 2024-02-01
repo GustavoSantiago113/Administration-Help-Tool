@@ -1,7 +1,8 @@
 # Libraries -----
 library(shiny)
 library(shinydashboard)
-library(dplyr)
+library(tidyverse)
+library(lubridate)
 source("pages/calendar.R")
 
 # UI -----
@@ -203,13 +204,51 @@ add_plan_modal <- function(){
 ## Observe Events ----
 
 ### Edit Cells ----
-edit_client <- function(input, ct, tablePath){
+edit_client <- function(input, ct, tablePath, calendarDB, calendarFilePath){
   
   row  <- input$clientsTable_cell_edit$row
   clmn <- input$clientsTable_cell_edit$col
+  
+  ID <- ct$data[["clienteId"]][[row]]
+  columnName <- names(ct$data[clmn])
+  if(columnName == "Aniversario_Animal"){
+    rowValue = "Aniversario do pet"
+  }
+  if(columnName == "Aniversario_Dono"){
+    rowValue = "Aniversario do tutor"
+  }
+  if(columnName == "Data_Inicio"){
+    rowValue = "Aniversario de fidelizacao"
+  }
+  
+  date_obj <- dmy(input$clientsTable_cell_edit$value)
+  
+  date_list <- lapply(seq(0, 10), function(i) {
+    new_date <- date_obj + years(i)
+    formatted_date <- format(new_date, "%Y-%m-%d")
+    return(formatted_date)
+  })
+  
+  newDB <- calendarDB$data %>%
+    filter(idCliente == as.character(ID),
+           body == rowValue)
+  
+  newDB$start <- unlist(date_list)
+  newDB$end <- unlist(date_list)
+  
+  updated_calendarDB <- dplyr::anti_join(calendarDB$data, newDB, by = c("calendarId", "idCliente", "title", "body", "start", "end"))
+  
+  updated_calendarDB <- dplyr::bind_rows(updated_calendarDB, newDB)
+  
+  updated_calendarDB <- dplyr::arrange(updated_calendarDB, calendarId)
+  
+  calendarDB$data <- updated_calendarDB
+  
   ct$data[row, clmn] <- input$clientsTable_cell_edit$value
   saveData(data = ct$data,
            filepath = tablePath)
+  saveData(data = calendarDB$data,
+           filepath = calendarFilePath)
   
 }
 
@@ -225,11 +264,20 @@ edit_plan <- function(input, pt, tablePath){
 
 ### Remove rows ----
 
-remove_client <- function(input, ct, tablePath){
+remove_client <- function(input, ct, tablePath, calendarDB, calendarFilePath){
   if (!is.null(input$clientsTable_rows_selected)) {
+    
+    row <- input$clientsTable_rows_selected
+    ID <- ct$data[["clienteId"]][[row]]
+    
+    newDB <- calendarDB$data %>%
+      filter(idCliente != as.character(ID))
+    
     ct$data <- ct$data[-as.numeric(input$clientsTable_rows_selected),]
     saveData(data = ct$data,
              filepath = tablePath)
+    saveData(data = newDB,
+             filepath = calendarFilePath)
   }
 }
 
@@ -245,6 +293,14 @@ remove_plan <- function(input, pt, tablePath){
 
 add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAnimal, aniversarioCliente, clienteDesde, contatoCliente, porteAnimal, planoCliente, calendarDB, calendarFilePath){
   
+  ID <- as.numeric(tail(database$data$clienteId, n = 1))
+  if(is.na(ID)){
+    ID = 0
+  }
+  else{
+    ID = ID
+  }
+  
   d <- c(Dono = nomeTutor,
          Animal = nomeAnimal,
          Aniversario_Animal = format(as.Date(aniversarioAnimal), "%d/%m/%Y"),
@@ -253,43 +309,57 @@ add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAn
          Data_Inicio = format(as.Date(clienteDesde), "%d/%m/%Y"),
          Porte = porteAnimal,
          Contato = contatoCliente,
-         Visitas_Restantes = 0)
+         Visitas_Restantes = 0,
+         clienteId = ID+1)
   
   database$data <- rbind(d, database$data)
   
   saveData(data = database$data,
            filepath = filePath)
   
-  add_calendar(filePath = calendarFilePath,
-               database = calendarDB,
-               calendarName = paste("Aniversario do", nomeAnimal),
-               calendarDescription = "Aniversario do pet",
-               calendarStart = format(as.Date(aniversarioAnimal), "%Y-%m-%d"),
-               calendarEnd = format(as.Date(aniversarioAnimal), "%Y-%m-%d"),
-               calendarCategory = "TRUE",
-               calendarLocation = "PetShop",
-               calendarColor = "#a83291",
-               recurrency = "Every year")
-  add_calendar(filePath = calendarFilePath,
-               database = calendarDB,
-               calendarName = paste("Aniversario do", nomeTutor),
-               calendarDescription = "Aniversario do tutor",
-               calendarStart = format(as.Date(aniversarioCliente), "%Y-%m-%d"),
-               calendarEnd = format(as.Date(aniversarioCliente), "%Y-%m-%d"),
-               calendarCategory = "TRUE",
-               calendarLocation = "PetShop",
-               calendarColor = "#a83291",
-               recurrency = "Every year")
-  add_calendar(filePath = calendarFilePath,
-               database = calendarDB,
-               calendarName = paste("Aniversario de cliente do", nomeAnimal),
-               calendarDescription = "Aniversario de fidelizacao",
-               calendarStart = format(as.Date(clienteDesde), "%Y-%m-%d"),
-               calendarEnd = format(as.Date(clienteDesde), "%Y-%m-%d"),
-               calendarCategory = "TRUE",
-               calendarLocation = "PetShop",
-               calendarColor = "#a83291",
-               recurrency = "Every year")
+  additional_years <- 10
+  
+  for (i in 0:additional_years) {
+
+    new_date <- as.Date(as.character(aniversarioAnimal), "%Y-%m-%d") + years(i)
+    add_calendar(filePath = calendarFilePath,
+                 database = calendarDB,
+                 calendarName = paste("Aniversario do", nomeAnimal),
+                 calendarDescription = "Aniversario do pet",
+                 calendarStart = new_date,
+                 calendarEnd = new_date,
+                 calendarCategory = "TRUE",
+                 calendarLocation = "PetShop",
+                 calendarColor = "#a83291",
+                 recurrency = "Todo ano",
+                 clientId = ID + 1)
+
+    new_date <- as.Date(as.character(aniversarioCliente), "%Y-%m-%d") + years(i)
+    add_calendar(filePath = calendarFilePath,
+                 database = calendarDB,
+                 calendarName = paste("Aniversario do", nomeTutor),
+                 calendarDescription = "Aniversario do tutor",
+                 calendarStart = new_date,
+                 calendarEnd = new_date,
+                 calendarCategory = "TRUE",
+                 calendarLocation = "PetShop",
+                 calendarColor = "#a83291",
+                 recurrency = "Todo ano",
+                 clientId = ID + 1)
+
+    new_date <- as.Date(as.character(clienteDesde), "%Y-%m-%d") + years(i)
+    add_calendar(filePath = calendarFilePath,
+                 database = calendarDB,
+                 calendarName = paste("Aniversario de cliente do", nomeAnimal),
+                 calendarDescription = "Aniversario de fidelizacao",
+                 calendarStart = new_date,
+                 calendarEnd = new_date,
+                 calendarCategory = "TRUE",
+                 calendarLocation = "PetShop",
+                 calendarColor = "#a83291",
+                 recurrency = "Todo ano",
+                 clientId = ID + 1)
+  }
   
   removeModal()
   

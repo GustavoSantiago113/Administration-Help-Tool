@@ -130,7 +130,7 @@ render_calendar <- function(calendarData){
 ## Observe Events ----
 
 ### Add event ----
-add_calendar <- function(filePath, database, calendarName, calendarDescription, calendarStart, calendarEnd, calendarCategory, calendarLocation, calendarColor, recurrency) {
+add_calendar <- function(filePath, database, calendarName, calendarDescription, calendarStart, calendarEnd, calendarCategory, calendarLocation, calendarColor, recurrency, clientId) {
   
   ID <- tail(database$data$calendarId, n = 1)
   
@@ -144,7 +144,8 @@ add_calendar <- function(filePath, database, calendarName, calendarDescription, 
     location = calendarLocation,
     backgroundColor = calendarColor,
     color = "#FFF",
-    recurrenceRule = recurrency
+    recurrenceRule = recurrency,
+    idCliente = clientId
   )
   
   database$data <- rbind(database$data, new_schedule)
