@@ -183,3 +183,13 @@ h4{
   font-size: 20px;
   margin-top: 15px;
 }
+
+/* Value box */
+.small-box h3 {
+    font-size: 38px;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    white-space: nowrap;
+    padding: 0;
+    color: white !important;
+}

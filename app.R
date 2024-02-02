@@ -21,6 +21,7 @@ source("pages/inventoryControl.R")
 source("pages/calendar.R")
 source("pages/simulator.R")
 source("pages/cliente_plano.R")
+source("pages/cashbook.R")
 
 # Databases ----
 inventoryPath <- "data/estoque.csv"
@@ -67,6 +68,8 @@ server <- function(input, output, session) {
           menuInventory(),
           #### Calendar ----
           menuCalendar(),
+          #### Cash book ----
+          menuCashBook(),
           #### Simulator ----
           menuSimulator(),
           #### Clients and Plans ----
@@ -84,6 +87,8 @@ server <- function(input, output, session) {
           inventoryControlMainPage(tabName = "inventoryControl"),
           #### Calendar ----
           calendarMainPage(tabName = "calendar"),
+          #### Cash book ----
+          cashbookMainPage(tabName = "cashbook"),
           #### Simulator ----
           simulatorMainPage(tabName = "simulator"),
           #### Clients and Plans ----
