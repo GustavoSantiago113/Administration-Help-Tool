@@ -193,3 +193,13 @@ h4{
     padding: 0;
     color: white !important;
 }
+
+/* Fiscal Note */
+#anoDesejado{
+    width: 100px;
+    max-width: 100%;
+    transform: translateY(70%);
+    margin-bottom: 0;
+    padding-left: 10px;
+}
+    

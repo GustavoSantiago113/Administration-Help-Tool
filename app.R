@@ -22,6 +22,7 @@ source("pages/calendar.R")
 source("pages/simulator.R")
 source("pages/cliente_plano.R")
 source("pages/cashbook.R")
+source("pages/fiscal_note.R")
 
 # Databases ----
 inventoryPath <- "data/estoque.csv"
@@ -74,6 +75,8 @@ server <- function(input, output, session) {
           menuSimulator(),
           #### Clients and Plans ----
           clientePlano(),
+          #### Fiscal Note ----
+          fiscalNote(),
           
           menuItem("Widgets", tabName = "widgets", icon = icon("th"))
           
@@ -93,6 +96,8 @@ server <- function(input, output, session) {
           simulatorMainPage(tabName = "simulator"),
           #### Clients and Plans ----
           clients_and_plans_MainPage(tabName = "clientePlano"),
+          #### Fiscal Note ----
+          fiscal_note_mainPage(tabName = "fiscalNote"),
           
           tabItem(tabName = "widgets",
                   h2("Widgets tab content")
@@ -258,6 +263,9 @@ server <- function(input, output, session) {
   #### Remove Rows ----
   observeEvent(input$removeClients, {remove_client(input, ct, clientsPath, cl, calendarPath)})
   observeEvent(input$removePlans, {remove_plan(input, pt, plansPath)})
+  
+  ### Fiscal Note ----
+  observeEvent(input$gerar, {generate_report(output)})
   
 }
 

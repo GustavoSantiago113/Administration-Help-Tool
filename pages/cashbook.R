@@ -2,6 +2,7 @@
 library(shiny)
 library(shinydashboard)
 library(lubridate)
+library(tidyverse)
 
 # UI -----
 
@@ -119,3 +120,43 @@ cashbookMainPage <- function(tabName){
   )
   
 }
+
+# # Server ----
+# 
+# ## Monthly profit ----
+# monthly_profit < function(sellingProductDB, sellingPlanDB){
+#   
+#   month <- month(ymd(Sys.Date()))
+#   
+#   filteredProductDB <- sellingProductDB %>%
+#     filter()
+#   
+#   filteredPlanDB <- sellingPlanDB %>%
+#     filter()
+#   
+# }
+# 
+# ## Stock value ----
+# stock_value < function(stockDB){
+#   
+# }
+# 
+# ## Savings ----
+# savings < function(sellingDB, buyingDB){
+#   
+# }
+# 
+# ## Monthly spents ----
+# monthly_spents < function(buyingDB){
+#   
+# }
+# 
+# ## Donuts graph ----
+# donuts_graph < function(sellingDB){
+#   
+# }
+# 
+# ## Line graph ----
+# line_graph < function(sellingDB, buyingDB){
+#   
+# }
