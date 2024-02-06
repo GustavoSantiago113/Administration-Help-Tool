@@ -1,0 +1,6 @@
+* Comentar tudo;
+* Mudar o metodo de incluir dados em tabela vazia;
+* Ver onde e necessario fazer a selecao unica nas tabelas;
+* Modificar tabelas para ter largura automatica e scroll-x;
+* Tentar resolver bugs do calendario;
+* Revisar inputs numericos;

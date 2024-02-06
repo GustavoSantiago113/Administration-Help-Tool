@@ -300,6 +300,7 @@ add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAn
   else{
     ID = ID
   }
+  id <- ID+1
   
   d <- c(Dono = nomeTutor,
          Animal = nomeAnimal,
@@ -310,7 +311,7 @@ add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAn
          Porte = porteAnimal,
          Contato = contatoCliente,
          Visitas_Restantes = 0,
-         clienteId = ID+1)
+         clienteId = id)
   
   database$data <- rbind(d, database$data)
   

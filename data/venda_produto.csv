@@ -1,1 +1,4 @@
-﻿Nome,Quantidade,Valor,Data,Categoria,Cliente
+"Nome","Quantidade","Categoria","Valor","Data","Cliente"
+"Falha de cobertura","15","Banho e Tosa","3","2024-02-05","Carlitos"
+"Baby","3","Racao","3","2024-02-05","Carlitos"
+"Pentelho","2","Racao","3","2024-02-05","Carlitos"

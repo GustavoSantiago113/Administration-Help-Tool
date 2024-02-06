@@ -262,7 +262,8 @@ add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, sel
 
   newDB <- c(Nome = name,
              Quantidade = as.numeric(amount),
-             Categoria = category)
+             Categoria = category,
+             Valor = as.numeric(sellValue))
 
   row_index <- which(inventoryDB$Nome == name)
 

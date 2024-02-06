@@ -113,7 +113,7 @@ remove_Input <- function(counter){
 ## Dynamic inputs ----
 dynamic_Inputs <- function(counter, AllInputs){
   
-  n <- counter$n
+  n <- counter$n # Map the number of desired inputs
   
   if (n > 0) {
     isolate({
@@ -131,12 +131,13 @@ dynamic_Inputs <- function(counter, AllInputs){
         )
       })
     })
-  }
+  } # Create the number inputs boxes
   
 }
 
 ## Dynamic outputs -----
 soma_preco <- function(counter, input, maodeobraSimulador, lucroSimulador, impostoSimulador){
+  
   inputValues <- lapply(seq_len(counter$n), function(i) {
     
     precoLista = input[[paste0("precoLista", i)]]
@@ -145,12 +146,13 @@ soma_preco <- function(counter, input, maodeobraSimulador, lucroSimulador, impos
     list(
       precoCusto <- precoLista*quantidadeLista
     )
-  })
+  }) # Create a list to store the input values
   
-  total_cost <- sum(unlist(inputValues)) + maodeobraSimulador
-  lucro <- total_cost + (total_cost * (lucroSimulador/100))
-  preco_final <- lucro + (lucro * (impostoSimulador/100))
+  total_cost <- sum(unlist(inputValues)) + maodeobraSimulador # Calculate cost
+  lucro <- total_cost + (total_cost * (lucroSimulador/100)) # Calculate profit
+  preco_final <- lucro + (lucro * (impostoSimulador/100)) # Include taxes
   return(preco_final)
+  
 }
 output_preco <- function(preco_final){
   if(is.na(preco_final)){
@@ -169,9 +171,9 @@ output_preco <- function(preco_final){
 
 simulador_produto <- function(novoCustoSimulador, impostoSimulador1, lucroSimulador1){
   
-  valorDeVenda <- ( novoCustoSimulador + (novoCustoSimulador * (lucroSimulador1/100) ) ) 
+  valorDeVenda <- ( novoCustoSimulador + (novoCustoSimulador * (lucroSimulador1/100) ) ) # Calculate selling price
   
-  valorDeVenda_imposto <- valorDeVenda + ( valorDeVenda * (impostoSimulador1/100) )
+  valorDeVenda_imposto <- valorDeVenda + ( valorDeVenda * (impostoSimulador1/100) ) # Include taxes
   
   tags$p(
     class = "simuladorOutput",

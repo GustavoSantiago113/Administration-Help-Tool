@@ -1,12 +1,12 @@
-"Nome","Quantidade","Categoria"
-"Falha de cobertura","45","Banho e Tosa"
-"Pentelho","14","Racao"
-"Teste maluco doido","1","Racao"
-"Baby","15","Racao"
-"Condicionador pelo crespo","10","Banho e Tosa"
-"Shampoo brilho suave","17","Banho e Tosa"
-"Coleira cat feliz","8","Item"
-"Racao Premium dog","10","Racao"
-"Racao shitty dog","15","Racao"
-"Caminha","2","Item"
-"Condicionador","35","Usavel"
+Nome,Quantidade,Categoria,Valor
+Falha de cobertura,45,Banho e Tosa,3
+Pentelho,14,Racao,3
+Teste maluco doido,1,Racao,3
+Baby,15,Racao,3
+Condicionador pelo crespo,10,Banho e Tosa,3
+Shampoo brilho suave,17,Banho e Tosa,3
+Coleira cat feliz,8,Item,3
+Racao Premium dog,10,Racao,3
+Racao shitty dog,15,Racao,3
+Caminha,2,Item,3
+Condicionador,35,Usavel,3

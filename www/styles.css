@@ -51,10 +51,10 @@ h3{
   color: #505f75 !important;
 }
 
-h4{
+/*h4{
   font-family: 'Bahnschrift' !important;
   color: #505f75 !important;
-}
+}*/
 
 .btn-success {
     background-color: #00a65a;
@@ -202,4 +202,8 @@ h4{
     margin-bottom: 0;
     padding-left: 10px;
 }
-    
+
+/* Sells */
+.control-label #clienteSell{
+  color: black;
+}
