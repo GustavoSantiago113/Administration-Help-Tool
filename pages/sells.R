@@ -1,7 +1,7 @@
 # Libraries -----
 library(shiny)
 library(shinydashboard)
-library(dplyr)
+library(tidyverse)
 
 # UI -----
 
@@ -171,7 +171,7 @@ add_product_modal <- function(){
     ),
     footer = NULL
   ) %>% showModal()
-}
+} # Modal for selling history
 
 add_visit_modal <- function(){
   modalDialog(
@@ -195,7 +195,7 @@ add_visit_modal <- function(){
     ),
     footer = NULL
   ) %>% showModal()
-}
+} # Modal for visit checkpoint history
 
 add_plan_sell_modal <- function(){
   modalDialog(
@@ -225,59 +225,141 @@ add_plan_sell_modal <- function(){
     ),
     footer = NULL
   ) %>% showModal()
-}
+} # Modal for plan selling history
 
 # Server ----
 
 ## Add data ----
 add_to_cart <- function(input, inventoryTable, cartTable){
   
-  row <- input$inventoryForCart_rows_selected
+  row <- input$inventoryForCart_rows_selected # Check the row of select product from modal table
   
+  # Create variables to store the name, category and value of the selected product
   name <- inventoryTable$data[row, "Nome"]
   category <- inventoryTable$data[row, "Categoria"]
   value <- inventoryTable$data[row, "Valor"]
   
-  cartTable$data[nrow(cartTable$data)+1,] <- c(name,1,category,value)
-}
+  cartTable$data[nrow(cartTable$data)+1,] <- c(name,1,category,value) # Append the variables to the cart table
+  
+} # Add data to the cart table
 
 add_to_sell_table <- function(sellProductTable, cartTable, client, sellProductTablePath, inventoryTable){
   
-  sellProductTable$data <- rbind(cartTable$data, sellProductTable$data)
+  # Append the client name and today's date to the cart data
+  cartTable$data$Data <- as.character(Sys.Date())
+  cartTable$data$Cliente <- client
   
-  sellProductTable$data$Data <- as.character(Sys.Date())
-  sellProductTable$data$Cliente <- client
+  
+  sellProductTable$data <- rbind(cartTable$data, sellProductTable$data)# Combine the cart table with the sells historic table
   
   saveData(data = sellProductTable$data,
-           filepath = sellProductTablePath)
+           filepath = sellProductTablePath) # Save the combined table
   
-  avector <- dplyr::pull(cartTable$data, Nome)
+  
+  removeModal() # Close the modal
+  
+} # Add data to the sells historic data and modify the amount in inventory
 
-  inventoryTable$data <- inventoryTable$data %>%
-    filter(!Nome %in% avector) %>%
+add_to_visit <- function(input, clientTable, clientTablePath, visitTable, visitTablePath){
   
-  removeModal()
+  row <- input$clientForCheckpoint_rows_selected # Get the row of select client from modal table
   
-}
+  clientTable$data[row, "Visitas_Restantes"] <- clientTable$data[row, "Visitas_Restantes"] - 1 # Checkpoint in the clients table, removing the visit
+  
+  saveData(data = clientTable$data,
+           filepath = clientTablePath) # Save the clients data
+  
+  # Create variables to store the name, owner name, date and remaining visits of the selected client
+  name <- clientTable$data[row, "Animal"]
+  dono <- clientTable$data[row, "Dono"]
+  date <- as.character(Sys.Date())
+  remainingVisits <- clientTable$data[row, "Visitas_Restantes"]
+  
+  visitTable$data[nrow(visitTable$data)+1,] <- c(name,dono,date,remainingVisits) # Append the variables to the visits table
+
+  saveData(data = visitTable$data,
+           filepath = visitTablePath) # Save the historical visits table
+  
+  removeModal() # Close the modal
+  
+} # Add data to historic visits table
+
+add_to_plan <- function(input, clientTable, planTable, clientTablePath, planSellTable, planSellTablePath){
+  
+  rowPlan <- input$planForSell_rows_selected # Get the row of select plan from modal table
+  rowClient <- input$clientForSell_rows_selected # Get the row of select client from modal table
+  
+  # Create variables to store the name, owner name, date of the selected client
+  name <- clientTable$data[rowClient, "Animal"]
+  dono <- clientTable$data[rowClient, "Dono"]
+  date <- as.character(Sys.Date())
+  
+  # Create variables to store the value of selected plan
+  value <- planTable$data[rowPlan, "Venda"]
+  
+  planSellTable$data[nrow(planSellTable$data)+1,] <- c(name, dono, value, date) # Append the variables to the plan sell table
+  
+  saveData(data = planSellTable$data,
+           filepath = planSellTablePath) # Save the plan sells historical
+  
+  clientTable$data[rowClient, "Visitas_Restantes"] <- clientTable$data[rowClient, "Visitas_Restantes"] + planTable$data[rowPlan, "Visitas"] # Checkpoint in the clients table, adding the visits
+  
+  saveData(data = clientTable$data,
+           filepath = clientTablePath) # Save the clients table
+  
+  removeModal() # Close the modal
+  
+} # Add data to historic plans sells
 
 ### Edit Cells ----
 edit_cart <- function(input, it){
   
+  # Check the row and column of the modified data
   row  <- input$cart_cell_edit$row
   clmn <- input$cart_cell_edit$col
-  it$data[row, clmn] <- input$cart_cell_edit$value
   
-}
+  it$data[row, clmn] <- input$cart_cell_edit$value # Change the value on the data
+  
+} # Edit the cart table
 
 edit_sells_table <- function(input, sellsProductTable, tablePath){
   
+  # Check the row and column of the modified data
   row  <- input$sellsTable_cell_edit$row
   clmn <- input$sellsTable_cell_edit$col
-  sellsProductTable$data[row, clmn] <- input$sellsTable_cell_edit$value
-  saveData(data = sellsProductTable$data,
-           filepath = tablePath)
   
-}
+  sellsProductTable$data[row, clmn] <- input$sellsTable_cell_edit$value # Change the value on the data
+  
+  saveData(data = sellsProductTable$data,
+           filepath = tablePath) # Save the changes
+  
+} # Edit the sells historic table and modify the amount in the inventory
+
+edit_visits_table <- function(input, visitsHistoricalTable, tablePath){
+  
+  # Check the row and column of the modified data
+  row  <- input$visitTable_cell_edit$row
+  clmn <- input$visitTable_cell_edit$col
+  
+  visitsHistoricalTable$data[row, clmn] <- input$visitTable_cell_edit$value # Change the value on the data
+  
+  saveData(data = visitsHistoricalTable$data,
+           filepath = tablePath) # Save the changes
+  
+} # Edit the checkpoint visit historic table and modify the amount in the inventory
+
+edit_plans_table <- function(input, planHistoricalTable, tablePath){
+  
+  # Check the row and column of the modified data
+  row  <- input$planSellTable_cell_edit$row
+  clmn <- input$planSellTable_cell_edit$col
+  
+  planHistoricalTable$data[row, clmn] <- input$planSellTable_cell_edit$value # Change the value on the data
+  
+  saveData(data = planHistoricalTable$data,
+           filepath = tablePath) # Save the changes
+  
+} # Edit the plan sells historic table and modify the amount in the inventory
 
 ### Remove rows ----
 
@@ -285,7 +367,7 @@ remove_from_cart <- function(input, it){
   if (!is.null(input$cart_rows_selected)) {
     it$data <- it$data[-as.numeric(input$cart_rows_selected),]
   }
-}
+} # Remove rows from the cart table
 
 remove_from_sells <- function(input, it, tablePath){
   if (!is.null(input$sellsTable_rows_selected)) {
@@ -293,12 +375,26 @@ remove_from_sells <- function(input, it, tablePath){
     saveData(data = it$data,
              filepath = tablePath)
   }
-}
+} # Remove rows from the sells historic and modify the amount in the inventory
 
+remove_from_visits <- function(input, it, tablePath){
+  if (!is.null(input$visitTable_rows_selected)) {
+    it$data <- it$data[-as.numeric(input$visitTable_rows_selected),]
+    saveData(data = it$data,
+             filepath = tablePath)
+  }
+} # Remove rows from the sells historic and modify the amount in the inventory
+
+remove_from_plans <- function(input, it, tablePath){
+  if (!is.null(input$planSellTable_rows_selected)) {
+    it$data <- it$data[-as.numeric(input$planSellTable_rows_selected),]
+    saveData(data = it$data,
+             filepath = tablePath)
+  }
+} # Remove rows from the sells historic and modify the amount in the inventory
 
 
 ## Save edits to Data ----
-
 saveData <- function(data, filepath) {
   write.csv(data, filepath, row.names = FALSE)
 }
