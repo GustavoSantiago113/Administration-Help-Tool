@@ -173,7 +173,10 @@ server <- function(input, output, session) {
   })# Client table to sell
   
   #### Add data -----
-  observeEvent(input$sellProduct, {add_product_modal()}) # Modal for product sells
+  observeEvent(input$sellProduct, {
+    cartReactive$data <- cartReactive$data[NULL,]
+    add_product_modal()
+    }) # Modal for product sells
   observeEvent(input$sellVisit, {add_visit_modal()}) # Modal for visits
   observeEvent(input$sellPlan, {add_plan_sell_modal()}) # Modal for sell plan
   observeEvent(input$addCart, {add_to_cart(input, it, cartReactive)}) #Add product to cart
@@ -181,7 +184,8 @@ server <- function(input, output, session) {
                                                     cartTable = cartReactive,
                                                     client = input$clientSell,
                                                     sellProductTablePath = sellsProductPath,
-                                                    inventoryTable = it)}) #Finish sell
+                                                    inventoryTable = it,
+                                                    inventoryTablePath = inventoryPath)}) #Finish sell
   observeEvent(input$addVisita, {add_to_visit(input,
                                               clientTable = ct,
                                               clientTablePath = clientsPath,
@@ -196,13 +200,13 @@ server <- function(input, output, session) {
   
   #### Remove Rows ----
   observeEvent(input$removeCart, {remove_from_cart(input, cartReactive)}) #Remove product from cart
-  observeEvent(input$unsellProduct, {remove_from_sells(input, sellsProductTable, sellsProductPath)}) #Remove product from sells historical
+  observeEvent(input$unsellProduct, {remove_from_sells(input, sellsProductTable, sellsProductPath, it, inventoryPath)}) #Remove product from sells historical
   observeEvent(input$unsellVisit, {remove_from_visits(input, visitHistorical, visitPath)}) #Remove visit from historical
   observeEvent(input$unsellPlan, {remove_from_plans(input, planSellHistorical, sellPlanPath)}) #Remove plan sell from historical
   
   #### Edit tables ----
   observeEvent(input$cart_cell_edit, {edit_cart(input, cartReactive)}) #Edit cart
-  observeEvent(input$sellsTable_cell_edit, {edit_sells_table(input, sellsProductTable, sellsProductPath)}) #Edit sells historical
+  observeEvent(input$sellsTable_cell_edit, {edit_sells_table(input, sellsProductTable, sellsProductPath, it, inventoryPath)}) #Edit sells historical
   observeEvent(input$visitTable_cell_edit, {edit_visits_table(input, visitHistorical, visitPath)}) #Edit visit historical table
   observeEvent(input$planSellTable_cell_edit, {edit_plans_table(input, planSellHistorical, sellPlanPath)}) #Edit plan sell historical table
   

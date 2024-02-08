@@ -243,18 +243,31 @@ add_to_cart <- function(input, inventoryTable, cartTable){
   
 } # Add data to the cart table
 
-add_to_sell_table <- function(sellProductTable, cartTable, client, sellProductTablePath, inventoryTable){
+add_to_sell_table <- function(sellProductTable, cartTable, client, sellProductTablePath, inventoryTable, inventoryTablePath){
   
-  # Append the client name and today's date to the cart data
+  # Append the client name, today's date amount to the cart data
   cartTable$data$Data <- as.character(Sys.Date())
   cartTable$data$Cliente <- client
-  
   
   sellProductTable$data <- rbind(cartTable$data, sellProductTable$data)# Combine the cart table with the sells historic table
   
   saveData(data = sellProductTable$data,
            filepath = sellProductTablePath) # Save the combined table
   
+  names <- cartTable$data[,1] # Get the names of the products to find them
+  
+  newDB <- inventoryTable$data %>%
+    filter(Nome %in% names) %>%
+    mutate(Quantidade = Quantidade - as.numeric(cartTable$data$Quantidade)) # Find the products and remove the amounts
+  
+  # Combine the inventory table with the cart table
+  updated_inventoryDB <- dplyr::anti_join(inventoryTable$data, newDB, by = c("Nome"))
+  updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
+  updated_inventoryDB <- dplyr::arrange(updated_inventoryDB)
+  inventoryTable$data <- updated_inventoryDB
+  
+  saveData(data = inventoryTable$data,
+           filepath = inventoryTablePath) # Save the updated inventory table
   
   removeModal() # Close the modal
   
@@ -322,11 +335,31 @@ edit_cart <- function(input, it){
   
 } # Edit the cart table
 
-edit_sells_table <- function(input, sellsProductTable, tablePath){
+edit_sells_table <- function(input, sellsProductTable, tablePath, inventoryTable, inventoryTablePath){
   
   # Check the row and column of the modified data
   row  <- input$sellsTable_cell_edit$row
   clmn <- input$sellsTable_cell_edit$col
+  
+  if(clmn == 2){
+
+    new_value <- input$sellsTable_cell_edit$value - sellsProductTable$data[row, clmn] # Getting the difference of the stock
+    name <- sellsProductTable$data[row, "Nome"] # Getting the product name
+    
+    newDB <- inventoryTable$data %>%
+      filter(Nome == name) %>%
+      mutate(Quantidade = Quantidade + new_value) # Find the products and add the amounts
+    
+    # Combine the inventory table with the cart table
+    updated_inventoryDB <- dplyr::anti_join(inventoryTable$data, newDB, by = c("Nome"))
+    updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
+    updated_inventoryDB <- dplyr::arrange(updated_inventoryDB)
+    inventoryTable$data <- updated_inventoryDB
+
+    saveData(data = inventoryTable$data,
+             filepath = inventoryTablePath) # Save the updated inventory table
+    
+  }
   
   sellsProductTable$data[row, clmn] <- input$sellsTable_cell_edit$value # Change the value on the data
   
@@ -369,19 +402,39 @@ remove_from_cart <- function(input, it){
   }
 } # Remove rows from the cart table
 
-remove_from_sells <- function(input, it, tablePath){
+remove_from_sells <- function(input, it, tablePath, inventoryTable, inventoryTablePath){
   if (!is.null(input$sellsTable_rows_selected)) {
-    it$data <- it$data[-as.numeric(input$sellsTable_rows_selected),]
+    
+    rows <- input$sellsTable_rows_selected # Getting the rows of the selected products
+    
+    # Getting the names and amounts of the selected products
+    quantidades <- it$data[rows, "Quantidade"]
+    names <- it$data[rows, "Nome"]
+    
+    newDB <- inventoryTable$data %>%
+      filter(Nome %in% names) %>%
+      mutate(Quantidade = Quantidade + quantidades) # Find the products and add the amounts
+    
+    # Combine the inventory table with the cart table
+    updated_inventoryDB <- dplyr::anti_join(inventoryTable$data, newDB, by = c("Nome"))
+    updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
+    updated_inventoryDB <- dplyr::arrange(updated_inventoryDB)
+    inventoryTable$data <- updated_inventoryDB
+    
+    saveData(data = inventoryTable$data,
+             filepath = inventoryTablePath) # Save the updated inventory table
+    
+    it$data <- it$data[-as.numeric(input$sellsTable_rows_selected),] # Remove the rows from sells history
     saveData(data = it$data,
-             filepath = tablePath)
+             filepath = tablePath) # Save the changes
   }
 } # Remove rows from the sells historic and modify the amount in the inventory
 
-remove_from_visits <- function(input, it, tablePath){
+remove_from_visits <- function(input, it, tablePath, inventoryTable, inventoryTablePath){
   if (!is.null(input$visitTable_rows_selected)) {
     it$data <- it$data[-as.numeric(input$visitTable_rows_selected),]
     saveData(data = it$data,
-             filepath = tablePath)
+             filepath = tablePath) # Save the changes
   }
 } # Remove rows from the sells historic and modify the amount in the inventory
 
@@ -389,7 +442,7 @@ remove_from_plans <- function(input, it, tablePath){
   if (!is.null(input$planSellTable_rows_selected)) {
     it$data <- it$data[-as.numeric(input$planSellTable_rows_selected),]
     saveData(data = it$data,
-             filepath = tablePath)
+             filepath = tablePath) # Save the changes
   }
 } # Remove rows from the sells historic and modify the amount in the inventory
 
