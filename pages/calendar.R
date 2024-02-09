@@ -132,16 +132,21 @@ render_calendar <- function(calendarData){
 ### Add event ----
 add_calendar <- function(filePath, database, calendarName, calendarDescription, calendarStart, calendarEnd, calendarCategory, calendarLocation, calendarColor, recurrency, clientId) {
   
-  ID <- tail(database$data$calendarId, n = 1)
-  if(is.na(ID)){
-    ID = 0
+  if (length(database$data[["calendarId"]]) > 0) {
+    # Get the last value of the specified column
+    last_value <- as.numeric(tail(database$data[["calendarId"]], 1))
+    
+    # Create a new variable based on the condition
+    identifier <- ifelse(is.na(last_value), 0, last_value)
+    
+    identity <- identifier + 1
+    
+  } else {
+    # If the column is empty, set id to 1 (or any other initial value)
+    identity <- 1
   }
-  else{
-    ID = ID
-  }
-  id <- ID+1
 
-  database$data[nrow(database$data)+1,] <- c(id,
+  database$data[nrow(database$data)+1,] <- c(identity,
                                              calendarName,
                                              calendarDescription,
                                              as.character(calendarStart),

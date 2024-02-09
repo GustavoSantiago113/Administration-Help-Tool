@@ -277,18 +277,19 @@ add_to_visit <- function(input, clientTable, clientTablePath, visitTable, visitT
   
   row <- input$clientForCheckpoint_rows_selected # Get the row of select client from modal table
   
-  clientTable$data[row, "Visitas_Restantes"] <- clientTable$data[row, "Visitas_Restantes"] - 1 # Checkpoint in the clients table, removing the visit
+  clientTable$data[row, "Visitas_Restantes"] <- as.numeric(clientTable$data[row, "Visitas_Restantes"]) - 1 # Checkpoint in the clients table, removing the visit
   
   saveData(data = clientTable$data,
            filepath = clientTablePath) # Save the clients data
   
-  # Create variables to store the name, owner name, date and remaining visits of the selected client
+  # Create variables to store the name, owner name, date, remaining visits and Id number of the selected client
   name <- clientTable$data[row, "Animal"]
   dono <- clientTable$data[row, "Dono"]
   date <- as.character(Sys.Date())
   remainingVisits <- clientTable$data[row, "Visitas_Restantes"]
+  idCliente <- clientTable$data[row, "clienteId"]
   
-  visitTable$data[nrow(visitTable$data)+1,] <- c(name,dono,date,remainingVisits) # Append the variables to the visits table
+  visitTable$data[nrow(visitTable$data)+1,] <- c(name, dono, date, remainingVisits, idCliente) # Append the variables to the visits table
 
   saveData(data = visitTable$data,
            filepath = visitTablePath) # Save the historical visits table
@@ -306,11 +307,13 @@ add_to_plan <- function(input, clientTable, planTable, clientTablePath, planSell
   name <- clientTable$data[rowClient, "Animal"]
   dono <- clientTable$data[rowClient, "Dono"]
   date <- as.character(Sys.Date())
+  idCliente <- as.numeric(clientTable$data[rowClient, "clienteId"])
   
-  # Create variables to store the value of selected plan
+  # Create variables to store the value and number of visits of selected plan
   value <- planTable$data[rowPlan, "Venda"]
+  num_visitas <- as.numeric(planTable$data[rowPlan, "Visitas"])
   
-  planSellTable$data[nrow(planSellTable$data)+1,] <- c(name, dono, value, date) # Append the variables to the plan sell table
+  planSellTable$data[nrow(planSellTable$data)+1,] <- c(name, dono, value, date, num_visitas, idCliente) # Append the variables to the plan sell table
   
   saveData(data = planSellTable$data,
            filepath = planSellTablePath) # Save the plan sells historical
@@ -348,8 +351,8 @@ edit_sells_table <- function(input, sellsProductTable, tablePath, inventoryTable
     
     newDB <- inventoryTable$data %>%
       filter(Nome == name) %>%
-      mutate(Quantidade = Quantidade + new_value) # Find the products and add the amounts
-    
+      mutate(Quantidade = Quantidade - new_value) # Find the products and add the amounts
+
     # Combine the inventory table with the cart table
     updated_inventoryDB <- dplyr::anti_join(inventoryTable$data, newDB, by = c("Nome"))
     updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
@@ -381,11 +384,32 @@ edit_visits_table <- function(input, visitsHistoricalTable, tablePath){
   
 } # Edit the checkpoint visit historic table and modify the amount in the inventory
 
-edit_plans_table <- function(input, planHistoricalTable, tablePath){
+edit_plans_table <- function(input, planHistoricalTable, tablePath, clientTable, clientTablePath){
   
   # Check the row and column of the modified data
   row  <- input$planSellTable_cell_edit$row
   clmn <- input$planSellTable_cell_edit$col
+  
+  if(clmn == 5){
+    
+    new_value <- input$planSellTable_cell_edit$value - planHistoricalTable$data[row, clmn]
+    
+    idcliente <- planHistoricalTable$data[row, "idCliente"] # Getting the product name
+    
+    newDB <- clientTable$data %>%
+      filter(clienteId == idcliente) %>%
+      mutate(Visitas_Restantes = Visitas_Restantes + new_value) # Find the products and add the amounts
+    
+    # Combine the inventory table with the cart table
+    updated_inventoryDB <- dplyr::anti_join(clientTable$data, newDB, by = c("clienteId"))
+    updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
+    updated_inventoryDB <- dplyr::arrange(updated_inventoryDB)
+    clientTable$data <- updated_inventoryDB
+    
+    saveData(data = clientTable$data,
+             filepath = clientTablePath) # Save the updated inventory table
+    
+  }
   
   planHistoricalTable$data[row, clmn] <- input$planSellTable_cell_edit$value # Change the value on the data
   
@@ -414,7 +438,7 @@ remove_from_sells <- function(input, it, tablePath, inventoryTable, inventoryTab
     newDB <- inventoryTable$data %>%
       filter(Nome %in% names) %>%
       mutate(Quantidade = Quantidade + quantidades) # Find the products and add the amounts
-    
+
     # Combine the inventory table with the cart table
     updated_inventoryDB <- dplyr::anti_join(inventoryTable$data, newDB, by = c("Nome"))
     updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
@@ -430,16 +454,56 @@ remove_from_sells <- function(input, it, tablePath, inventoryTable, inventoryTab
   }
 } # Remove rows from the sells historic and modify the amount in the inventory
 
-remove_from_visits <- function(input, it, tablePath, inventoryTable, inventoryTablePath){
+remove_from_visits <- function(input, it, tablePath, clientTable, clientTablePath){
   if (!is.null(input$visitTable_rows_selected)) {
+    
+    row <- input$visitTable_rows_selected # Getting the rows of the selected visit
+    
+    # Getting the names and amounts of the selected products
+    clientId <- as.numeric(it$data[row, "clienteId"])
+    
+    newDB <- clientTable$data %>%
+      filter(clienteId == clientId) %>%
+      mutate(Visitas_Restantes = Visitas_Restantes + 1)
+
+    # Combine the inventory table with the cart table
+    updated_inventoryDB <- dplyr::anti_join(clientTable$data, newDB, by = c("clienteId"))
+    updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
+    updated_inventoryDB <- dplyr::arrange(updated_inventoryDB)
+    clientTable$data <- updated_inventoryDB
+
+    saveData(data = clientTable$data,
+             filepath = clientTablePath) # Save the updated inventory table
+
     it$data <- it$data[-as.numeric(input$visitTable_rows_selected),]
     saveData(data = it$data,
              filepath = tablePath) # Save the changes
   }
 } # Remove rows from the sells historic and modify the amount in the inventory
 
-remove_from_plans <- function(input, it, tablePath){
+remove_from_plans <- function(input, it, tablePath, clientTable, clientTablePath){
   if (!is.null(input$planSellTable_rows_selected)) {
+    
+    row <- input$planSellTable_rows_selected # Getting the rows of the selected visit
+    
+    # Getting the names and amounts of the selected products
+    clientId <- it$data[row, "idCliente"]
+    
+    numb_of_visits <- as.numeric(it$data[row, "Numero_Visitas"])
+    
+    newDB <- clientTable$data %>%
+      filter(clienteId == clientId) %>%
+      mutate(Visitas_Restantes = Visitas_Restantes - numb_of_visits)
+    
+    # Combine the inventory table with the cart table
+    updated_inventoryDB <- dplyr::anti_join(clientTable$data, newDB, by = c("clienteId"))
+    updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
+    updated_inventoryDB <- dplyr::arrange(updated_inventoryDB)
+    clientTable$data <- updated_inventoryDB
+    
+    saveData(data = clientTable$data,
+             filepath = clientTablePath) # Save the updated inventory table
+    
     it$data <- it$data[-as.numeric(input$planSellTable_rows_selected),]
     saveData(data = it$data,
              filepath = tablePath) # Save the changes

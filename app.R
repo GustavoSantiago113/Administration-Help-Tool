@@ -149,7 +149,6 @@ server <- function(input, output, session) {
   })# Visit checkpoint
   output$visitTable <- DT::renderDataTable({
     datatable(visitHistorical$data,
-              editable = TRUE,
               options = list(pageLength = 5, dom = 'ft'),
               selection = "single")
   })# Visit historic
@@ -201,14 +200,18 @@ server <- function(input, output, session) {
   #### Remove Rows ----
   observeEvent(input$removeCart, {remove_from_cart(input, cartReactive)}) #Remove product from cart
   observeEvent(input$unsellProduct, {remove_from_sells(input, sellsProductTable, sellsProductPath, it, inventoryPath)}) #Remove product from sells historical
-  observeEvent(input$unsellVisit, {remove_from_visits(input, visitHistorical, visitPath)}) #Remove visit from historical
-  observeEvent(input$unsellPlan, {remove_from_plans(input, planSellHistorical, sellPlanPath)}) #Remove plan sell from historical
+  observeEvent(input$unsellVisit, {remove_from_visits(input,
+                                                      it = visitHistorical,
+                                                      tablePath = visitPath,
+                                                      clientTable = ct,
+                                                      clientTablePath = clientsPath)}) #Remove visit from historical
+  observeEvent(input$unsellPlan, {remove_from_plans(input, planSellHistorical, sellPlanPath, ct, clientsPath)}) #Remove plan sell from historical
   
   #### Edit tables ----
   observeEvent(input$cart_cell_edit, {edit_cart(input, cartReactive)}) #Edit cart
   observeEvent(input$sellsTable_cell_edit, {edit_sells_table(input, sellsProductTable, sellsProductPath, it, inventoryPath)}) #Edit sells historical
   observeEvent(input$visitTable_cell_edit, {edit_visits_table(input, visitHistorical, visitPath)}) #Edit visit historical table
-  observeEvent(input$planSellTable_cell_edit, {edit_plans_table(input, planSellHistorical, sellPlanPath)}) #Edit plan sell historical table
+  observeEvent(input$planSellTable_cell_edit, {edit_plans_table(input, planSellHistorical, sellPlanPath, ct, clientsPath)}) #Edit plan sell historical table
   
   ### Inventory ----
   

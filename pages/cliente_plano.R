@@ -97,6 +97,7 @@ clients_and_plans_MainPage <- function(tabName){
 
 ## Add Modals ----
 add_client_modal <- function(){
+  
   modalDialog(
     title = "Adicionar Cliente",
     size = "m",
@@ -209,46 +210,50 @@ edit_client <- function(input, ct, tablePath, calendarDB, calendarFilePath){
   row  <- input$clientsTable_cell_edit$row
   clmn <- input$clientsTable_cell_edit$col
   
-  ID <- ct$data[["clienteId"]][[row]]
-  columnName <- names(ct$data[clmn])
-  if(columnName == "Aniversario_Animal"){
-    rowValue = "Aniversario do pet"
+  if(clmn == 3 || clmn == 4 || clmn == 6){
+    ID <- ct$data[["clienteId"]][[row]]
+    columnName <- names(ct$data[clmn])
+    if(columnName == "Aniversario_Animal"){
+      rowValue = "Aniversario do pet"
+    }
+    if(columnName == "Aniversario_Dono"){
+      rowValue = "Aniversario do tutor"
+    }
+    if(columnName == "Data_Inicio"){
+      rowValue = "Aniversario de fidelizacao"
+    }
+    
+    date_obj <- dmy(input$clientsTable_cell_edit$value)
+    
+    date_list <- lapply(seq(0, 10), function(i) {
+      new_date <- date_obj + years(i)
+      formatted_date <- format(new_date, "%Y-%m-%d")
+      return(formatted_date)
+    })
+    
+    newDB <- calendarDB$data %>%
+      filter(idCliente == as.character(ID),
+             body == rowValue)
+    
+    newDB$start <- unlist(date_list)
+    newDB$end <- unlist(date_list)
+    
+    updated_calendarDB <- dplyr::anti_join(calendarDB$data, newDB, by = c("idCliente"))
+    
+    updated_calendarDB <- dplyr::bind_rows(updated_calendarDB, newDB)
+    
+    updated_calendarDB <- dplyr::arrange(updated_calendarDB, calendarId)
+    
+    calendarDB$data <- updated_calendarDB
+    
+    saveData(data = calendarDB$data,
+             filepath = calendarFilePath)
   }
-  if(columnName == "Aniversario_Dono"){
-    rowValue = "Aniversario do tutor"
-  }
-  if(columnName == "Data_Inicio"){
-    rowValue = "Aniversario de fidelizacao"
-  }
-  
-  date_obj <- dmy(input$clientsTable_cell_edit$value)
-  
-  date_list <- lapply(seq(0, 10), function(i) {
-    new_date <- date_obj + years(i)
-    formatted_date <- format(new_date, "%Y-%m-%d")
-    return(formatted_date)
-  })
-  
-  newDB <- calendarDB$data %>%
-    filter(idCliente == as.character(ID),
-           body == rowValue)
-  
-  newDB$start <- unlist(date_list)
-  newDB$end <- unlist(date_list)
-  
-  updated_calendarDB <- dplyr::anti_join(calendarDB$data, newDB, by = c("calendarId", "idCliente", "title", "body", "start", "end"))
-  
-  updated_calendarDB <- dplyr::bind_rows(updated_calendarDB, newDB)
-  
-  updated_calendarDB <- dplyr::arrange(updated_calendarDB, calendarId)
-  
-  calendarDB$data <- updated_calendarDB
   
   ct$data[row, clmn] <- input$clientsTable_cell_edit$value
+  
   saveData(data = ct$data,
            filepath = tablePath)
-  saveData(data = calendarDB$data,
-           filepath = calendarFilePath)
   
 }
 
@@ -293,27 +298,29 @@ remove_plan <- function(input, pt, tablePath){
 
 add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAnimal, aniversarioCliente, clienteDesde, contatoCliente, porteAnimal, planoCliente, calendarDB, calendarFilePath){
   
-  ID <- as.numeric(tail(database$data$clienteId, n = 1))
-  if(is.na(ID)){
-    ID = 0
+  if (length(database$data[["clienteId"]]) > 0) {
+    # Get the last value of the specified column
+    last_value <- tail(database$data[["clienteId"]], 1)
+    
+    # Create a new variable based on the condition
+    identifier <- ifelse(is.na(last_value), 0, last_value)
+    
+    identity <- identifier + 1
+  } else {
+    # If the column is empty, set id to 1 (or any other initial value)
+    identity <- 1
   }
-  else{
-    ID = ID
-  }
-  id <- ID+1
   
-  d <- c(Dono = nomeTutor,
-         Animal = nomeAnimal,
-         Aniversario_Animal = format(as.Date(aniversarioAnimal), "%d/%m/%Y"),
-         Aniversario_Dono = format(as.Date(aniversarioCliente), "%d/%m/%Y"),
-         Plano = planoCliente,
-         Data_Inicio = format(as.Date(clienteDesde), "%d/%m/%Y"),
-         Porte = porteAnimal,
-         Contato = contatoCliente,
-         Visitas_Restantes = 0,
-         clienteId = id)
-  
-  database$data <- rbind(d, database$data)
+  database$data[nrow(database$data)+1,] <- c(nomeTutor,
+                                             nomeAnimal,
+                                             format(as.Date(aniversarioAnimal), "%d/%m/%Y"),
+                                             format(as.Date(aniversarioCliente), "%d/%m/%Y"),
+                                             planoCliente,
+                                             format(as.Date(clienteDesde), "%d/%m/%Y"),
+                                             porteAnimal,
+                                             contatoCliente,
+                                             0,
+                                             identity)
   
   saveData(data = database$data,
            filepath = filePath)
@@ -322,44 +329,44 @@ add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAn
   
   for (i in 0:additional_years) {
 
-    new_date <- as.Date(as.character(aniversarioAnimal), "%Y-%m-%d") + years(i)
+    new_date_Pet <- as.Date(as.character(aniversarioAnimal), "%Y-%m-%d") + years(i)
     add_calendar(filePath = calendarFilePath,
                  database = calendarDB,
-                 calendarName = paste("Aniversario do", nomeAnimal),
-                 calendarDescription = "Aniversario do pet",
-                 calendarStart = new_date,
-                 calendarEnd = new_date,
+                 calendarName = paste("Aniversario de", nomeAnimal),
+                 calendarDescription = paste("Aniversario do pet, contato:", contatoCliente),
+                 calendarStart = new_date_Pet,
+                 calendarEnd = new_date_Pet,
                  calendarCategory = "TRUE",
                  calendarLocation = "PetShop",
                  calendarColor = "#a83291",
                  recurrency = "Todo ano",
-                 clientId = ID + 1)
-
-    new_date <- as.Date(as.character(aniversarioCliente), "%Y-%m-%d") + years(i)
+                 clientId = identity)
+    
+    new_date_Cliente <- as.Date(as.character(aniversarioCliente), "%Y-%m-%d") + years(i)
     add_calendar(filePath = calendarFilePath,
                  database = calendarDB,
-                 calendarName = paste("Aniversario do", nomeTutor),
-                 calendarDescription = "Aniversario do tutor",
-                 calendarStart = new_date,
-                 calendarEnd = new_date,
+                 calendarName = paste("Aniversario de", nomeTutor),
+                 calendarDescription = paste("Aniversario de Tutor, contato:", contatoCliente),
+                 calendarStart = new_date_Cliente,
+                 calendarEnd = new_date_Cliente,
                  calendarCategory = "TRUE",
                  calendarLocation = "PetShop",
                  calendarColor = "#a83291",
                  recurrency = "Todo ano",
-                 clientId = ID + 1)
-
-    new_date <- as.Date(as.character(clienteDesde), "%Y-%m-%d") + years(i)
+                 clientId = identity)
+    
+    new_date_Fidel <- as.Date(as.character(clienteDesde), "%Y-%m-%d") + years(i)
     add_calendar(filePath = calendarFilePath,
                  database = calendarDB,
-                 calendarName = paste("Aniversario de cliente do", nomeAnimal),
-                 calendarDescription = "Aniversario de fidelizacao",
-                 calendarStart = new_date,
-                 calendarEnd = new_date,
+                 calendarName = paste("Aniversario de cliente de", nomeAnimal),
+                 calendarDescription = paste("Aniversario de Fidelizacao, contato:", contatoCliente),
+                 calendarStart = new_date_Fidel,
+                 calendarEnd = new_date_Fidel,
                  calendarCategory = "TRUE",
                  calendarLocation = "PetShop",
                  calendarColor = "#a83291",
                  recurrency = "Todo ano",
-                 clientId = ID + 1)
+                 clientId = identity)
   }
   
   removeModal()
