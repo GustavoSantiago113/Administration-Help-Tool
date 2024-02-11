@@ -6,3 +6,6 @@
 * Revisar inputs numericos;
 * Ver o que ta acontecendo que os eventos do calendario estao sendo criados umas 400 vezes quando modificado no cliente;
 * Mudar as coisas para id de produto;
+* So poder apertar o botao de salvar quando tudo estiver preenchido;
+* Remover da planilha de compras -> remover do estoque
+* Problemas com as datas

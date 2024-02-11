@@ -375,13 +375,7 @@ add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAn
 
 add_plans <- function(database, filePath, nomePlano, valorVendaPlano, custoPlano, numeroDeVisitas, descicaoPlano){
   
-  d <- c(Nome = nomePlano,
-         Venda = valorVendaPlano,
-         Custo = custoPlano,
-         Visitas = numeroDeVisitas,
-         Descricao = descicaoPlano)
-  
-  database$data <- rbind(d, database$data)
+  database$data[nrow(database$data)+1,] <- c(nomePlano,valorVendaPlano,custoPlano,numeroDeVisitas,descicaoPlano)
   
   saveData(data = database$data,
            filepath = filePath)

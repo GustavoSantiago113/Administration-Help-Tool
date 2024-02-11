@@ -1,0 +1,35 @@
+---
+title: "Notais Fiscais"
+date: "`r format(Sys.time(), '%d/%m/%Y')`" 
+output: word_document
+params:
+  ano: NULL
+---
+
+```{r echo=FALSE, include=FALSE}
+library(tidyverse)
+library(lubridate)
+```
+
+
+# Notas Fiscais
+
+Esse documento vai te ajudar na declaracao do seu imposto
+
+```{r, echo=FALSE}
+
+ano <- params$ano
+
+data <- read.csv("../data/compra.csv")
+
+data$Data <- format(as.Date(data$Data, format = '%d/%m/%Y'),'%Y/%m/%d')
+
+product_data <- data %>%
+  dplyr::select(Nome, Data, Nota, Fornecedor) %>%
+  filter(year(Data) == ano)
+
+product_data$Data <- format(as.Date(product_data$Data, format = '%Y/%m/%d'),'%d/%m/%Y')
+  
+# Print the product data table
+knitr::kable(product_data)
+```

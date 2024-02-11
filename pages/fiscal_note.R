@@ -1,5 +1,6 @@
 # Libraries ----
 library(shinycssloaders)
+library(rmarkdown)
 
 # UI ----
 
@@ -71,11 +72,9 @@ generate_report <- function(output){
   
   output$downloadReportButton <- renderUI({
     Sys.sleep(1.5)
-    actionButton(
-      inputId = "baixar",
-      label = "Baixar",
-      icon = icon("download"),
-      style = "background-color: #505f75; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
-    )
+    downloadButton("downloadPDF",
+                   "Baixar",
+                   style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
+                   )
   })
 }

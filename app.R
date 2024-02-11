@@ -94,7 +94,11 @@ server <- function(input, output, session) {
           #### Calendar ----
           calendarMainPage(tabName = "calendar"),
           #### Cash book ----
-          cashbookMainPage(tabName = "cashbook"),
+          cashbookMainPage(tabName = "cashbook",
+                           sellingProductDB = "data/venda_produto.csv",
+                           sellingPlanDB = "data/venda_plano.csv",
+                           inventoryDB = "data/estoque.csv",
+                           buyingDB = "data/compra.csv"),
           #### Simulator ----
           simulatorMainPage(tabName = "simulator"),
           #### Clients and Plans ----
@@ -244,7 +248,8 @@ server <- function(input, output, session) {
                                                   name = input$nomeEstoque,
                                                   amount = input$quantidadeEstoque,
                                                   category = input$categoriaEstoque,
-                                                  filePath = inventoryPath)}) # Add inventory data
+                                                  filePath = inventoryPath,
+                                                  sellValue = input$valorEstoque)}) # Add inventory data
   observeEvent(input$addBuy, {add_buy_modal()}) # Modal for buy table
   observeEvent(input$buyAdd, {add_buy(name = input$nomeCompra,
                                       amount = input$quantidadeCompra,
@@ -302,7 +307,7 @@ server <- function(input, output, session) {
   textboxes <- reactive({dynamic_Inputs(counter, AllInputs())}) # Create the dynamic boxes
   output$extraInputs <- renderUI({ textboxes() }) # Render the dynamic boxes
   
-  ### Remove inputs ----
+  #### Remove inputs ----
   observeEvent(input$inputsRemove, {remove_Input(counter)}) # Remove the inputs
   
   #### Calculating prices ----
@@ -324,7 +329,8 @@ server <- function(input, output, session) {
   #### Render reactive tables ----
   output$clientsTable <- DT::renderDataTable({
     datatable(ct$data,
-              editable = TRUE)
+              editable = TRUE,
+              selection = "single")
   }) # Client table
   output$plansTable <- DT::renderDataTable({
     datatable(pt$data,
@@ -367,6 +373,20 @@ server <- function(input, output, session) {
   
   ### Fiscal Note ----
   observeEvent(input$gerar, {generate_report(output)}) # Generate the fiscal note
+  output$downloadPDF <- downloadHandler(
+    filename = "Notas Fiscais.docx",
+    content = function(file) {
+      rmarkdown::render("pages/report.Rmd",
+                        output_file = file, 
+                        params = list(ano = input$anoDesejado))
+    }
+  )
+  
+  ### Cash book ----
+  output$donutPlot <- renderPlot({donuts_graph(sellsProductTable)})
+  output$linePlot <- renderPlot({line_graph(sellingProductDB = sellsProductTable,
+                                            sellingPlanDB = planSellHistorical,
+                                            buyingDB = bt)})
   
 }
 

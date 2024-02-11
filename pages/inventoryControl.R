@@ -106,20 +106,23 @@ add_buy_modal <- function(){
         label = NULL,
         placeholder = "Nome"
       ),
-      textInput(
+      numericInput(
         inputId = "quantidadeCompra",
-        label = NULL,
-        placeholder = "Quantidade"
+        label = "Quantidade",
+        min = 0,
+        value = 0
       ),
-      textInput(
+      numericInput(
         inputId = "valorCompra",
-        label = NULL,
-        placeholder = "Valor da Compra"
+        label = "Valor da Compra",
+        min = 0,
+        value = 0
       ),
-      textInput(
+      numericInput(
         inputId = "valorVenda",
-        label = NULL,
-        placeholder = "Valor da Venda"
+        label = "Valor da Venda",
+        min = 0,
+        value = 0
       ),
       textInput(
         inputId = "numeroNota",
@@ -164,10 +167,17 @@ add_inventory_modal <- function(){
         label = NULL,
         placeholder = "Nome"
       ),
-      textInput(
+      numericInput(
         inputId = "quantidadeEstoque",
-        label = NULL,
-        placeholder = "Quantidade"
+        label = "Quantidade",
+        value = 0,
+        min = 0
+      ),
+      numericInput(
+        inputId = "valorEstoque",
+        label = "Valor de venda",
+        value = 0,
+        min = 0
       ),
       selectInput(
         inputId = "categoriaEstoque",
@@ -230,13 +240,12 @@ remove_buy <- function(input, bt, tablePath){
 
 ### Add data ----
 
-add_inventory <- function(database, name, amount, category, filePath){
+add_inventory <- function(database, name, amount, category, sellValue, filePath){
   
-  d <- c(Nome = name,
-         Quantidade = as.numeric(amount),
-         Categoria = category)
-  
-  database$data <- rbind(d, database$data)
+  database$data[nrow(database$data)+1,] <- c(name,
+                                             as.numeric(amount),
+                                             category,
+                                             as.numeric(sellValue))
   
   saveData(data = database$data,
            filepath = filePath)
@@ -247,30 +256,26 @@ add_inventory <- function(database, name, amount, category, filePath){
 
 add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, seller, buyDate, category, filePath, inventoryDB, inventoryDBPath){
   
-  d <- c(Nome = name,
-         Quantidade = as.numeric(amount),
-         Valor.de.Compra = as.numeric(buyValue),
-         Valor.de.Venda = as.numeric(sellValue),
-         Data = format(as.Date(buyDate), "%d/%m/%Y"),
-         Categoria = category,
-         Nota = as.numeric(noteNumber),
-         Fornecedor = seller)
-  
-  database$data <- rbind(d, database$data)
+  database$data[nrow(database$data)+1,] <- c(name,
+                                             as.numeric(amount),
+                                             as.numeric(buyValue),
+                                             as.numeric(sellValue),
+                                             format(as.Date(buyDate), "%Y-%m-%d"),
+                                             category,
+                                             noteNumber,
+                                             seller)
   saveData(data = database$data,
            filepath = filePath)
-
-  newDB <- c(Nome = name,
-             Quantidade = as.numeric(amount),
-             Categoria = category,
-             Valor = as.numeric(sellValue))
 
   row_index <- which(inventoryDB$Nome == name)
 
   if (length(row_index) > 0) {
     inventoryDB$data$Quantidade[row_index] <- inventoryDB$data$Quantidade[row_index] + as.numeric(amount)
   } else {
-    inventoryDB$data <- rbind(newDB, inventoryDB$data)
+    inventoryDB$data[nrow(inventoryDB$data)+1,] <- c(name,
+                                                     as.numeric(amount),
+                                                     category,
+                                                     as.numeric(sellValue))
   }
 
   saveData(data = inventoryDB$data,
