@@ -19,6 +19,7 @@ source("pages/cliente_plano.R")
 source("pages/cashbook.R")
 source("pages/fiscal_note.R")
 source("pages/sells.R")
+source("pages/login.R")
 
 # Databases ----
 inventoryPath <- "data/estoque.csv"
@@ -29,6 +30,7 @@ plansPath <- "data/planos.csv"
 sellsProductPath <- "data/venda_produto.csv"
 visitPath <- "data/visitas.csv"
 sellPlanPath <- "data/venda_plano.csv"
+dataUsers <- tibble(read.csv("data/usuarios.csv"))
 
 # UI ----
 ui <- tagList(
@@ -42,25 +44,47 @@ ui <- tagList(
   shinyjs::useShinyjs(),
   
   ## Website ----
-  uiOutput(outputId = "website")
+  uiOutput(outputId = "web_page")
   
 )
 
 # SERVER ----
 server <- function(input, output, session) {
   
+  userFiltered <- reactiveValues(data = dataUsers)
+  
+  ## Validate Login ------
+  validate <- callModule(
+    module = validate_pwd,
+    id = "login",
+    data = dataUsers,
+    user_col = Usuario,
+    pwd_col = Senha)
+  
+  ## Display page ----
+  output$web_page <- renderUI({
+    
+    tagList(
+      login_ui(id = "login", "Login"),
+      
+      uiOutput(outputId = "website"),
+    )
+  })
+  
   ## Render Website ----
   output$website <- renderUI({
     
+    req(validate()$validate)
+    
     dashboardPage(
-      dashboardHeader(title = "Bella Pet", # Title
+      header = dashboardHeader(title = "Bella Pet", # Title
                       tags$li(class = "dropdown",
-                              tags$p(class = "greetings", 
-                                     "Ola, Usuario"),
+                              tags$p(class = "greetings",
+                                     paste("Ola,", validate()$table.Nome)),
                               tags$img(class = "profile_img",
-                                       src = "Profile.png")) #Name and picture in the right corner
+                                       src = validate()$table.Imagem)) #Name and picture in the right corner
                       ), # Header
-      dashboardSidebar(
+      sidebar = dashboardSidebar(
         ### Side Bar Menu ----
         sidebarMenu(
           
@@ -71,19 +95,20 @@ server <- function(input, output, session) {
           #### Calendar ----
           menuCalendar(),
           #### Cash book ----
-          menuCashBook(),
+          if(validate()$table.Permissao == "admin"){
+            menuCashBook()
+          },
           #### Simulator ----
           menuSimulator(),
           #### Clients and Plans ----
           clientePlano(),
           #### Fiscal Note ----
-          fiscalNote(),
-          
-          menuItem("Widgets", tabName = "widgets", icon = icon("th"))
-          
+          if(validate()$table.Permissao == "admin"){
+            fiscalNote()
+          }
         )
       ),
-      dashboardBody(
+      body = dashboardBody(
         ### Body ----
         tabItems(
           
@@ -104,12 +129,7 @@ server <- function(input, output, session) {
           #### Clients and Plans ----
           clients_and_plans_MainPage(tabName = "clientePlano"),
           #### Fiscal Note ----
-          fiscal_note_mainPage(tabName = "fiscalNote"),
-          
-          tabItem(tabName = "widgets",
-                  h2("Widgets tab content")
-          )
-          
+          fiscal_note_mainPage(tabName = "fiscalNote")
         )
       )
     )
