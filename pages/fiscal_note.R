@@ -66,10 +66,13 @@ fiscal_note_mainPage <- function(tabName){
 
 ## Generate report ----
 generate_report <- function(output){
+  
+  # Spinner to show the user that the document is being prepared
   output$downloadReport <- renderUI({
     withSpinner(uiOutput("downloadReportButton"), size = 0.5)
   })
   
+  # Render the button to users download the report
   output$downloadReportButton <- renderUI({
     Sys.sleep(1.5)
     downloadButton("downloadPDF",

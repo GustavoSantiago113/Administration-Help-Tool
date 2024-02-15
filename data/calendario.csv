@@ -1,6 +1,5 @@
 "calendarId","title","body","start","end","isAllday","location","backgroundColor","color","recurrenceRule","idCliente"
 "1","Aniversario de pet","Aniversario de Fox contato: 3516815168","2024-02-12","2024-02-12","TRUE","PetShop","#a83291","#FFF","Todo ano","1"
-"10","Aniversario de pet","Aniversario de Fox contato: 3516815168","2027-02-12","2027-02-12","TRUE","PetShop","#a83291","#FFF","Todo ano","1"
 "11","Aniversario de tutor","Aniversario de Giovanna contato: 3516815168","2027-02-14","2027-02-14","TRUE","PetShop","#a83291","#FFF","Todo ano","1"
 "12","Aniversario de fidelizacao","Aniversario de Fidelizacao de Fox contato: 3516815168","2027-02-15","2027-02-15","TRUE","PetShop","#a83291","#FFF","Todo ano","1"
 "13","Aniversario de pet","Aniversario de Fox contato: 3516815168","2028-02-12","2028-02-12","TRUE","PetShop","#a83291","#FFF","Todo ano","1"

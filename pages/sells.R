@@ -130,6 +130,7 @@ sellsMainPage <- function(tabName){
 }
 
 ## Add Modals ----
+# Modal for selling history
 add_product_modal <- function(input){
    modalDialog(
     title = "Venda de produto",
@@ -177,8 +178,8 @@ add_product_modal <- function(input){
     ),
     footer = NULL
   ) %>% showModal()
-} # Modal for selling history
-
+}
+# Modal for visit checkpoint history
 add_visit_modal <- function(){
   modalDialog(
     title = "Visita",
@@ -203,8 +204,8 @@ add_visit_modal <- function(){
     ),
     footer = NULL
   ) %>% showModal()
-} # Modal for visit checkpoint history
-
+}
+# Modal for plan selling history
 add_plan_sell_modal <- function(){
   modalDialog(
     title = "Venda de plano",
@@ -235,11 +236,12 @@ add_plan_sell_modal <- function(){
     ),
     footer = NULL
   ) %>% showModal()
-} # Modal for plan selling history
+} 
 
 # Server ----
 
 ## Add data ----
+# Add data to the cart table
 add_to_cart <- function(input, inventoryTable, cartTable){
   
   row <- input$inventoryForCart_rows_selected # Check the row of select product from modal table
@@ -251,8 +253,8 @@ add_to_cart <- function(input, inventoryTable, cartTable){
   
   cartTable$data[nrow(cartTable$data)+1,] <- c(name,1,category,value) # Append the variables to the cart table
   
-} # Add data to the cart table
-
+}
+# Add data to the sells historic data and modify the amount in inventory
 add_to_sell_table <- function(sellProductTable, cartTable, client, sellProductTablePath, inventoryTable, inventoryTablePath){
   
   # Append the client name, today's date amount to the cart data
@@ -281,8 +283,8 @@ add_to_sell_table <- function(sellProductTable, cartTable, client, sellProductTa
 
   removeModal() # Close the modal
   
-} # Add data to the sells historic data and modify the amount in inventory
-
+}
+# Add data to historic visits table
 add_to_visit <- function(input, clientTable, clientTablePath, visitTable, visitTablePath){
   
   row <- input$clientForCheckpoint_rows_selected # Get the row of select client from modal table
@@ -306,8 +308,8 @@ add_to_visit <- function(input, clientTable, clientTablePath, visitTable, visitT
   
   removeModal() # Close the modal
   
-} # Add data to historic visits table
-
+}
+# Add data to historic plans sells
 add_to_plan <- function(input, clientTable, planTable, clientTablePath, planSellTable, planSellTablePath){
   
   rowPlan <- input$planForSell_rows_selected # Get the row of select plan from modal table
@@ -335,9 +337,10 @@ add_to_plan <- function(input, clientTable, planTable, clientTablePath, planSell
   
   removeModal() # Close the modal
   
-} # Add data to historic plans sells
+}
 
 ### Edit Cells ----
+# Edit the cart table
 edit_cart <- function(input, it){
   
   # Check the row and column of the modified data
@@ -346,14 +349,15 @@ edit_cart <- function(input, it){
   
   it$data[row, clmn] <- input$cart_cell_edit$value # Change the value on the data
   
-} # Edit the cart table
-
+}
+# Edit the sells historic table and modify the amount in the inventory
 edit_sells_table <- function(input, sellsProductTable, tablePath, inventoryTable, inventoryTablePath){
   
   # Check the row and column of the modified data
   row  <- input$sellsTable_cell_edit$row
   clmn <- input$sellsTable_cell_edit$col
   
+  # If the column modified is equal to Amount, modify it in the inventory database
   if(clmn == 2){
 
     new_value <- as.numeric(input$sellsTable_cell_edit$value) - as.numeric(sellsProductTable$data[row, clmn]) # Getting the difference of the stock
@@ -379,8 +383,8 @@ edit_sells_table <- function(input, sellsProductTable, tablePath, inventoryTable
   saveData(data = sellsProductTable$data,
            filepath = tablePath) # Save the changes
   
-} # Edit the sells historic table and modify the amount in the inventory
-
+}
+# Edit the checkpoint visit historic table and modify the amount in the inventory
 edit_visits_table <- function(input, visitsHistoricalTable, tablePath){
   
   # Check the row and column of the modified data
@@ -392,14 +396,15 @@ edit_visits_table <- function(input, visitsHistoricalTable, tablePath){
   saveData(data = visitsHistoricalTable$data,
            filepath = tablePath) # Save the changes
   
-} # Edit the checkpoint visit historic table and modify the amount in the inventory
-
+}
+# Edit the plan sells historic table and modify the amount in the inventory
 edit_plans_table <- function(input, planHistoricalTable, tablePath, clientTable, clientTablePath){
   
   # Check the row and column of the modified data
   row  <- input$planSellTable_cell_edit$row
   clmn <- input$planSellTable_cell_edit$col
   
+  # If the column is equal to the number of visits, update that in the client database
   if(clmn == 5){
     
     new_value <- as.numeric(input$planSellTable_cell_edit$value) - as.numeric(planHistoricalTable$data[row, clmn])
@@ -426,16 +431,16 @@ edit_plans_table <- function(input, planHistoricalTable, tablePath, clientTable,
   saveData(data = planHistoricalTable$data,
            filepath = tablePath) # Save the changes
   
-} # Edit the plan sells historic table and modify the amount in the inventory
+}
 
 ### Remove rows ----
-
+# Remove rows from the cart table
 remove_from_cart <- function(input, it){
   if (!is.null(input$cart_rows_selected)) {
-    it$data <- it$data[-as.numeric(input$cart_rows_selected),]
+    it$data <- it$data[-as.numeric(input$cart_rows_selected),] # Remove the selected row from the table
   }
-} # Remove rows from the cart table
-
+} 
+# Remove rows from the sells historic and modify the amount in the inventory
 remove_from_sells <- function(input, it, tablePath, inventoryTable, inventoryTablePath){
   if (!is.null(input$sellsTable_rows_selected)) {
     
@@ -462,8 +467,8 @@ remove_from_sells <- function(input, it, tablePath, inventoryTable, inventoryTab
     saveData(data = it$data,
              filepath = tablePath) # Save the changes
   }
-} # Remove rows from the sells historic and modify the amount in the inventory
-
+} 
+# Remove rows from the sells historic and modify the amount in the inventory
 remove_from_visits <- function(input, it, tablePath, clientTable, clientTablePath){
   if (!is.null(input$visitTable_rows_selected)) {
     
@@ -472,11 +477,12 @@ remove_from_visits <- function(input, it, tablePath, clientTable, clientTablePat
     # Getting the names and amounts of the selected products
     clientId <- as.numeric(it$data[row, "clienteId"])
     
+    # Find the client and add a visit
     newDB <- clientTable$data %>%
       filter(clienteId == clientId) %>%
       mutate(Visitas_Restantes = Visitas_Restantes + 1)
 
-    # Combine the inventory table with the cart table
+    # Combine the client table with the visit checkpoint table
     updated_inventoryDB <- dplyr::anti_join(clientTable$data, newDB, by = c("clienteId"))
     updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
     updated_inventoryDB <- dplyr::arrange(updated_inventoryDB)
@@ -489,8 +495,8 @@ remove_from_visits <- function(input, it, tablePath, clientTable, clientTablePat
     saveData(data = it$data,
              filepath = tablePath) # Save the changes
   }
-} # Remove rows from the sells historic and modify the amount in the inventory
-
+} 
+# Remove rows from the sells historic and modify the amount in the inventory
 remove_from_plans <- function(input, it, tablePath, clientTable, clientTablePath){
   if (!is.null(input$planSellTable_rows_selected)) {
     
@@ -499,8 +505,10 @@ remove_from_plans <- function(input, it, tablePath, clientTable, clientTablePath
     # Getting the names and amounts of the selected products
     clientId <- it$data[row, "idCliente"]
     
+    # Get the number of visits
     numb_of_visits <- as.numeric(it$data[row, "Numero_Visitas"])
     
+    # Find the client and remove the number of visits
     newDB <- clientTable$data %>%
       filter(clienteId == clientId) %>%
       mutate(Visitas_Restantes = Visitas_Restantes - numb_of_visits)
@@ -518,8 +526,7 @@ remove_from_plans <- function(input, it, tablePath, clientTable, clientTablePath
     saveData(data = it$data,
              filepath = tablePath) # Save the changes
   }
-} # Remove rows from the sells historic and modify the amount in the inventory
-
+}
 
 ## Save edits to Data ----
 saveData <- function(data, filepath) {

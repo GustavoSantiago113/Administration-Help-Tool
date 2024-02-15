@@ -210,7 +210,7 @@ server <- function(input, output, session) {
     else{
       disable("finishSell")
     }
-  })
+  }) # Only enable button to finish the sell after selected a product
   observeEvent(input$sellVisit, {add_visit_modal()}) # Modal for visits
   observe({
     if(!is.null(input$clientForCheckpoint_rows_selected)){
@@ -219,7 +219,7 @@ server <- function(input, output, session) {
     else{
       disable("addVisita")
     }
-  })
+  }) # Only enable button to check in after selected a client
   observeEvent(input$sellPlan, {add_plan_sell_modal()}) # Modal for sell plan
   state <- reactiveValues()
   observe({
@@ -229,7 +229,7 @@ server <- function(input, output, session) {
     else{
       disable("sell_Plan")
     }
-  })
+  }) # Only enable button to confirm a plan sell after selected the plan and the client
   observeEvent(input$addCart, {add_to_cart(input, it, cartReactive)}) #Add product to cart
   observeEvent(input$finishSell, {add_to_sell_table(sellProductTable = sellsProductTable,
                                                     cartTable = cartReactive,
@@ -296,14 +296,6 @@ server <- function(input, output, session) {
   
   #### Add data -----
   observeEvent(input$addInventory, {add_inventory_modal(input)}) # Modal for inventory
-  # observe({
-  #   if(input$nomeEstoque!="" && input$quantidadeEstoque!=0 && input$valorEstoque!=0){
-  #     enable("inventoryAdd")
-  #   }
-  #   else{
-  #     disable("inventoryAdd")
-  #   }
-  # })
   observeEvent(input$inventoryAdd, {add_inventory(database = it,
                                                   name = input$nomeEstoque,
                                                   amount = input$quantidadeEstoque,
@@ -311,18 +303,6 @@ server <- function(input, output, session) {
                                                   filePath = inventoryPath,
                                                   sellValue = input$valorEstoque)}) # Add inventory data
   observeEvent(input$addBuy, {add_buy_modal(it)}) # Modal for buy table
-  # observe({
-  #   if(input$quantidadeCompra != 0 && 
-  #      input$valorCompra != 0 && 
-  #      input$valorVenda != 0 &&
-  #      input$numeroNota != "" &&
-  #      input$fornecedor != ""){
-  #     enable("buyAdd")
-  #   }
-  #   else{
-  #     disable("buyAdd")
-  #   }
-  # })
   observeEvent(input$buyAdd, {add_buy(name = input$nomeCompra,
                                       amount = input$quantidadeCompra,
                                       buyValue = input$valorCompra,
@@ -454,14 +434,14 @@ server <- function(input, output, session) {
                         output_file = file, 
                         params = list(ano = input$anoDesejado))
     }
-  )
+  ) # Download the report
   
   ### Cash book ----
-  observe({donuts_graph(output, sellsProductTable)})
+  observe({donuts_graph(output, sellsProductTable)}) # Generate the donut graph
   observe({line_graph(output,
                       sellingProductDB = sellsProductTable,
                       sellingPlanDB = planSellHistorical,
-                      buyingDB = bt)})
+                      buyingDB = bt)}) # Generate the line graph
   
 }
 
