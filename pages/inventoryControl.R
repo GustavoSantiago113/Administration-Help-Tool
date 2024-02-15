@@ -50,7 +50,8 @@ inventoryControlMainPage <- function(tabName){
             ),
             br(),
             DTOutput(
-              outputId = "buyTable"
+              outputId = "buyTable",
+              width = "auto"
             )
           )
         )
@@ -83,7 +84,8 @@ inventoryControlMainPage <- function(tabName){
             ),
             br(),
             DTOutput(
-              outputId = "inventoryTable"
+              outputId = "inventoryTable",
+              width = "auto"
             )
           )
         )
@@ -94,17 +96,25 @@ inventoryControlMainPage <- function(tabName){
 }
 
 ## Add Modals ----
-add_buy_modal <- function(){
+add_buy_modal <- function(inventoryDB){
+  
+  my_autocomplete_list <- inventoryDB$data[,"Nome"]
   modalDialog(
     title = "Adicionar Produto",
     size = "m",
     easyClose = TRUE,
     div(
-      style="z-index:1002",
-      textInput(
-        inputId = "nomeCompra",
-        label = NULL,
-        placeholder = "Nome"
+      column(
+        width = 12,
+        style="z-index:1002; margin-bottom: 15px; padding-left: 0px;",
+        selectizeInput(
+          inputId = 'nomeCompra',
+          label = 'Nome',
+          choices = my_autocomplete_list,
+          selected = NULL,
+          multiple = FALSE,
+          options = list(create = TRUE)
+        )
       ),
       numericInput(
         inputId = "quantidadeCompra",
@@ -147,15 +157,16 @@ add_buy_modal <- function(){
                     "Banho e Tosa" = "Banho e Tosa",
                     "Roupinha" = "Roupinha")
       ),
-      actionButton(inputId = "buyAdd", 
-                   label   = "Adicionar a compras", 
-                   class   = "btn-success")
+      disabled(
+        actionButton(inputId = "buyAdd", 
+                     label   = "Adicionar a compras", 
+                     style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;")
+      )
     ),
     footer = NULL
   ) %>% showModal()
 }
-add_inventory_modal <- function(){
-  
+add_inventory_modal <- function(input){
   modalDialog(
     title = "Adicionar Produto",
     size = "m",
@@ -186,12 +197,23 @@ add_inventory_modal <- function(){
                     "Banho e Tosa" = "Banho e Tosa",
                     "Roupinha" = "Roupinha")
       ),
-      actionButton(inputId = "inventoryAdd", 
-                   label   = "Adicionar ao estoque", 
-                   class   = "btn-success")
+      disabled(
+        actionButton(inputId = "inventoryAdd", 
+                     label   = "Adicionar ao estoque", 
+                     style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;")
+      )
     ),
     footer = NULL
   ) %>% showModal()
+  
+  observe({
+    if(!is.null(input$nomeEstoque) && !is.null(input$quantidadeEstoque) && !is.null(input$valorEstoque)){
+      enable("inventoryAdd")
+    }
+    else{
+      disable("inventoryAdd")
+    }
+  })
   
 }
 
@@ -210,11 +232,32 @@ edit_inventory <- function(input, it, tablePath){
   
 }
 
-edit_buy <- function(input, bt, tablePath){
+edit_buy <- function(input, bt, tablePath, inventoryTable, inventoryTablePath){
   
   row  <- input$buyTable_cell_edit$row
   clmn <- input$buyTable_cell_edit$col
-  bt$data[row, clmn] <- input$buyTable_cell_edit$value
+  
+  if(clmn == 2){
+    product <- bt$data$Nome[[row]]
+    amount <- as.numeric(bt$data[row, clmn]) - as.numeric(input$buyTable_cell_edit$value)
+    print(product)
+    print(amount)
+    newDB <- inventoryTable$data %>%
+      filter(Nome == product) %>%
+      mutate(Quantidade = Quantidade - as.numeric(amount)) # Find the products and remove the amounts
+    
+    # Combine the inventory table with the cart table
+    updated_inventoryDB <- dplyr::anti_join(inventoryTable$data, newDB, by = c("Nome"))
+    updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
+    updated_inventoryDB <- dplyr::arrange(updated_inventoryDB)
+    inventoryTable$data <- updated_inventoryDB
+    
+    bt$data[row, clmn] <- input$buyTable_cell_edit$value
+    saveData(data = inventoryTable$data,
+             filepath = inventoryTablePath)
+    
+  }
+  
   saveData(data = bt$data,
            filepath = tablePath)
   
@@ -230,8 +273,26 @@ remove_inventory <- function(input, it, tablePath){
   }
 }
 
-remove_buy <- function(input, bt, tablePath){
+remove_buy <- function(input, bt, tablePath, inventoryTable, inventoryTablePath){
   if (!is.null(input$buyTable_rows_selected)) {
+    
+    row <- input$buyTable_rows_selected
+    product <- bt$data$Nome[[row]]
+    amount <- bt$data$Quantidade[[row]]
+    
+    newDB <- inventoryTable$data %>%
+      filter(Nome == product) %>%
+      mutate(Quantidade = Quantidade - as.numeric(amount)) # Find the products and remove the amounts
+    
+    # Combine the inventory table with the cart table
+    updated_inventoryDB <- dplyr::anti_join(inventoryTable$data, newDB, by = c("Nome"))
+    updated_inventoryDB <- dplyr::bind_rows(updated_inventoryDB, newDB)
+    updated_inventoryDB <- dplyr::arrange(updated_inventoryDB)
+    inventoryTable$data <- updated_inventoryDB
+    
+    saveData(data = inventoryTable$data,
+             filepath = inventoryTablePath)
+    
     bt$data <- bt$data[-as.numeric(input$buyTable_rows_selected),]
     saveData(data = bt$data,
              filepath = tablePath)
@@ -267,7 +328,7 @@ add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, sel
   saveData(data = database$data,
            filepath = filePath)
 
-  row_index <- which(inventoryDB$Nome == name)
+  row_index <- which(inventoryDB$data$Nome == name)
 
   if (length(row_index) > 0) {
     inventoryDB$data$Quantidade[row_index] <- inventoryDB$data$Quantidade[row_index] + as.numeric(amount)
@@ -280,7 +341,7 @@ add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, sel
 
   saveData(data = inventoryDB$data,
            filepath = inventoryDBPath)
-  
+
   removeModal()
 }
 

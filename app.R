@@ -65,24 +65,24 @@ server <- function(input, output, session) {
   output$web_page <- renderUI({
     
     tagList(
-      login_ui(id = "login", "Login"),
+      #login_ui(id = "login", "Login"),
       
-      uiOutput(outputId = "website"),
+      uiOutput(outputId = "website")
     )
   })
   
   ## Render Website ----
   output$website <- renderUI({
     
-    req(validate()$validate)
+    #req(validate()$validate)
     
     dashboardPage(
-      header = dashboardHeader(title = "Bella Pet", # Title
-                      tags$li(class = "dropdown",
-                              tags$p(class = "greetings",
-                                     paste("Ola,", validate()$table.Nome)),
-                              tags$img(class = "profile_img",
-                                       src = validate()$table.Imagem)) #Name and picture in the right corner
+      header = dashboardHeader(title = "Bella Pet" # Title
+                      # tags$li(class = "dropdown",
+                      #         tags$p(class = "greetings",
+                      #                paste("Ola,", validate()$table.Nome)),
+                      #         tags$img(class = "profile_img",
+                      #                  src = validate()$table.Imagem)) #Name and picture in the right corner
                       ), # Header
       sidebar = dashboardSidebar(
         ### Side Bar Menu ----
@@ -95,17 +95,19 @@ server <- function(input, output, session) {
           #### Calendar ----
           menuCalendar(),
           #### Cash book ----
-          if(validate()$table.Permissao == "admin"){
-            menuCashBook()
-          },
+          # if(validate()$table.Permissao == "admin"){
+          #   menuCashBook()
+          # },
+          menuCashBook(),
           #### Simulator ----
           menuSimulator(),
           #### Clients and Plans ----
           clientePlano(),
           #### Fiscal Note ----
-          if(validate()$table.Permissao == "admin"){
-            fiscalNote()
-          }
+          # if(validate()$table.Permissao == "admin"){
+          #   fiscalNote()
+          # }
+          fiscalNote()
         )
       ),
       body = dashboardBody(
@@ -153,33 +155,34 @@ server <- function(input, output, session) {
   #### Render reactive tables ----
   output$inventoryForCart <- DT::renderDataTable({
     datatable(it$data,
-              options = list(pageLength = 5, dom = 'ft'),
+              options = list(pageLength = 5, dom = 'ft', scrollX = TRUE),
               selection = "single")
   }) # Products for cart
   output$cart <- DT::renderDataTable({
     datatable(cartReactive$data,
               editable = TRUE,
-              options = list(pageLength = 5, dom = 't'))
+              options = list(pageLength = 5, dom = 't', scrollX = TRUE))
   }) # Cart
   output$sellsTable <- DT::renderDataTable({
     datatable(sellsProductTable$data,
               editable = TRUE,
-              options = list(pageLength = 10))
+              options = list(pageLength = 10, scrollX = TRUE),
+              selection = "single")
   })# Sells historic
   output$clientForCheckpoint <- DT::renderDataTable({
     datatable(ct$data,
-              options = list(pageLength = 5, dom = 'ft', scrollX = TRUE),
+              options = list(pageLength = 5, dom = 'ft', scrollX = TRUE, columnDefs = list(list(visible=FALSE, targets=c("clienteId")))),
               selection = "single")
   })# Visit checkpoint
   output$visitTable <- DT::renderDataTable({
     datatable(visitHistorical$data,
-              options = list(pageLength = 5, dom = 'ft'),
+              options = list(pageLength = 5, dom = 'ft', scrollX = TRUE, columnDefs = list(list(visible=FALSE, targets=c("clienteId")))),
               selection = "single")
   })# Visit historic
   output$planSellTable <- DT::renderDataTable({
     datatable(planSellHistorical$data,
               editable = TRUE,
-              options = list(pageLength = 5, dom = 'ft'),
+              options = list(pageLength = 5, dom = 'ft', scrollX = TRUE, columnDefs = list(list(visible=FALSE, targets=c("idCliente")))),
               selection = "single")
   })# Plan sell historic
   output$planForSell <- DT::renderDataTable({
@@ -191,17 +194,42 @@ server <- function(input, output, session) {
   output$clientForSell <- DT::renderDataTable({
     datatable(ct$data,
               editable = TRUE,
-              options = list(pageLength = 5, dom = 'ft', scrollX = TRUE),
+              options = list(pageLength = 5, dom = 'ft', scrollX = TRUE, columnDefs = list(list(visible=FALSE, targets=c("clienteId")))),
               selection = "single")
   })# Client table to sell
   
   #### Add data -----
   observeEvent(input$sellProduct, {
     cartReactive$data <- cartReactive$data[NULL,]
-    add_product_modal()
+    add_product_modal(input)
     }) # Modal for product sells
+  observe({
+    if(nrow(cartReactive$data) != 0 && input$clientSell!=""){
+      enable("finishSell")
+    }
+    else{
+      disable("finishSell")
+    }
+  })
   observeEvent(input$sellVisit, {add_visit_modal()}) # Modal for visits
+  observe({
+    if(!is.null(input$clientForCheckpoint_rows_selected)){
+      enable("addVisita")
+    }
+    else{
+      disable("addVisita")
+    }
+  })
   observeEvent(input$sellPlan, {add_plan_sell_modal()}) # Modal for sell plan
+  state <- reactiveValues()
+  observe({
+    if(!is.null(input$planForSell_rows_selected) && !is.null(input$clientForSell_rows_selected)){
+      enable("sell_Plan")
+    }
+    else{
+      disable("sell_Plan")
+    }
+  })
   observeEvent(input$addCart, {add_to_cart(input, it, cartReactive)}) #Add product to cart
   observeEvent(input$finishSell, {add_to_sell_table(sellProductTable = sellsProductTable,
                                                     cartTable = cartReactive,
@@ -209,6 +237,7 @@ server <- function(input, output, session) {
                                                     sellProductTablePath = sellsProductPath,
                                                     inventoryTable = it,
                                                     inventoryTablePath = inventoryPath)}) #Finish sell
+
   observeEvent(input$addVisita, {add_to_visit(input,
                                               clientTable = ct,
                                               clientTablePath = clientsPath,
@@ -247,30 +276,53 @@ server <- function(input, output, session) {
   #### Render reactive tables ----
   output$inventoryTable <- DT::renderDataTable({
     datatable(it$data,
-              editable = TRUE)
+              editable = TRUE,
+              options = list(scrollX = TRUE))
   }) # Inventory table
   output$buyTable <- DT::renderDataTable({
     datatable(bt$data,
-              editable = TRUE)
+              editable = TRUE,
+              selection = "single",
+              options = list(scrollX = TRUE))
   }) # Buy table
   
   #### Edit tables ----
   observeEvent(input$inventoryTable_cell_edit, {edit_inventory(input, it, inventoryPath)}) # Edit inventory table
-  observeEvent(input$buyTable_cell_edit, {edit_buy(input, bt, buysPath)}) # Edit buy table
+  observeEvent(input$buyTable_cell_edit, {edit_buy(input, bt, buysPath, it, inventoryPath)}) # Edit buy table
   
   #### Remove Rows ----
   observeEvent(input$removeInventory, {remove_inventory(input, it, inventoryPath)}) # Remove inventory rows
-  observeEvent(input$removeBuy, {remove_buy(input, bt, buysPath)}) # Remove buy table rows
+  observeEvent(input$removeBuy, {remove_buy(input, bt, buysPath, it, inventoryPath)}) # Remove buy table rows
   
   #### Add data -----
-  observeEvent(input$addInventory, {add_inventory_modal()}) # Modal for inventory
+  observeEvent(input$addInventory, {add_inventory_modal(input)}) # Modal for inventory
+  # observe({
+  #   if(input$nomeEstoque!="" && input$quantidadeEstoque!=0 && input$valorEstoque!=0){
+  #     enable("inventoryAdd")
+  #   }
+  #   else{
+  #     disable("inventoryAdd")
+  #   }
+  # })
   observeEvent(input$inventoryAdd, {add_inventory(database = it,
                                                   name = input$nomeEstoque,
                                                   amount = input$quantidadeEstoque,
                                                   category = input$categoriaEstoque,
                                                   filePath = inventoryPath,
                                                   sellValue = input$valorEstoque)}) # Add inventory data
-  observeEvent(input$addBuy, {add_buy_modal()}) # Modal for buy table
+  observeEvent(input$addBuy, {add_buy_modal(it)}) # Modal for buy table
+  # observe({
+  #   if(input$quantidadeCompra != 0 && 
+  #      input$valorCompra != 0 && 
+  #      input$valorVenda != 0 &&
+  #      input$numeroNota != "" &&
+  #      input$fornecedor != ""){
+  #     enable("buyAdd")
+  #   }
+  #   else{
+  #     disable("buyAdd")
+  #   }
+  # })
   observeEvent(input$buyAdd, {add_buy(name = input$nomeCompra,
                                       amount = input$quantidadeCompra,
                                       buyValue = input$valorCompra,
@@ -350,15 +402,17 @@ server <- function(input, output, session) {
   output$clientsTable <- DT::renderDataTable({
     datatable(ct$data,
               editable = TRUE,
-              selection = "single")
+              selection = "single",
+              options = list(scrollX = TRUE, columnDefs = list(list(visible=FALSE, targets=c("clienteId")))))
   }) # Client table
   output$plansTable <- DT::renderDataTable({
     datatable(pt$data,
-              editable = TRUE)
+              editable = TRUE,
+              options = list(scrollX = TRUE))
   }) #Plan table
   
   #### Add data ----
-  observeEvent(input$addClients, {add_client_modal()}) # Modal for client
+  observeEvent(input$addClients, {add_client_modal(pt)}) # Modal for client
   observeEvent(input$clientAdd, {add_clients(database = ct,
                                              filePath = clientsPath,
                                              nomeAnimal = input$nomeAnimal,
@@ -403,10 +457,11 @@ server <- function(input, output, session) {
   )
   
   ### Cash book ----
-  output$donutPlot <- renderPlot({donuts_graph(sellsProductTable)})
-  output$linePlot <- renderPlot({line_graph(sellingProductDB = sellsProductTable,
-                                            sellingPlanDB = planSellHistorical,
-                                            buyingDB = bt)})
+  observe({donuts_graph(output, sellsProductTable)})
+  observe({line_graph(output,
+                      sellingProductDB = sellsProductTable,
+                      sellingPlanDB = planSellHistorical,
+                      buyingDB = bt)})
   
 }
 

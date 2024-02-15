@@ -50,7 +50,8 @@ sellsMainPage <- function(tabName){
             ),
             br(),
             DTOutput(
-              outputId = "sellsTable"
+              outputId = "sellsTable",
+              width = "auto"
             )
           )
         )
@@ -83,7 +84,8 @@ sellsMainPage <- function(tabName){
             ),
             br(),
             DTOutput(
-              outputId = "visitTable"
+              outputId = "visitTable",
+              width = "auto"
             )
           )
         )
@@ -116,7 +118,8 @@ sellsMainPage <- function(tabName){
             ),
             br(),
             DTOutput(
-              outputId = "planSellTable"
+              outputId = "planSellTable",
+              width = "auto"
             )
           )
         )
@@ -127,8 +130,8 @@ sellsMainPage <- function(tabName){
 }
 
 ## Add Modals ----
-add_product_modal <- function(){
-  modalDialog(
+add_product_modal <- function(input){
+   modalDialog(
     title = "Venda de produto",
     size = "m",
     easyClose = TRUE,
@@ -141,7 +144,8 @@ add_product_modal <- function(){
       ),
       br(),
       DTOutput(
-        outputId = "inventoryForCart"
+        outputId = "inventoryForCart",
+        width = "auto"
       ),
       br(),
       actionButton(
@@ -161,11 +165,13 @@ add_product_modal <- function(){
         icon = icon("trash"),
         style = "background-color: red; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
       ),
-      actionButton(
-        inputId = "finishSell",
-        label = "Finalizar venda",
-        icon = icon("plus"),
-        style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
+      disabled(
+        actionButton(
+          inputId = "finishSell",
+          label = "Finalizar venda",
+          icon = icon("plus"),
+          style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
+        )
       ),
       br(),
     ),
@@ -186,11 +192,13 @@ add_visit_modal <- function(){
         width = "auto"
       ),
       br(),
-      actionButton(
-        inputId = "addVisita",
-        label = "Confirmar visita",
-        icon = icon("plus"),
-        style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
+      disabled(
+        actionButton(
+          inputId = "addVisita",
+          label = "Confirmar visita",
+          icon = icon("plus"),
+          style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
+        )
       )
     ),
     footer = NULL
@@ -216,11 +224,13 @@ add_plan_sell_modal <- function(){
         width = "auto"
       ),
       br(),
-      actionButton(
-        inputId = "sell_Plan",
-        label = "Confirmar venda",
-        icon = icon("plus"),
-        style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
+      disabled(
+        actionButton(
+          inputId = "sell_Plan",
+          label = "Confirmar venda",
+          icon = icon("plus"),
+          style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;"
+        )
       )
     ),
     footer = NULL
@@ -318,7 +328,7 @@ add_to_plan <- function(input, clientTable, planTable, clientTablePath, planSell
   saveData(data = planSellTable$data,
            filepath = planSellTablePath) # Save the plan sells historical
   
-  clientTable$data[rowClient, "Visitas_Restantes"] <- clientTable$data[rowClient, "Visitas_Restantes"] + planTable$data[rowPlan, "Visitas"] # Checkpoint in the clients table, adding the visits
+  clientTable$data[rowClient, "Visitas_Restantes"] <- as.numeric(clientTable$data[rowClient, "Visitas_Restantes"]) + as.numeric(planTable$data[rowPlan, "Visitas"]) # Checkpoint in the clients table, adding the visits
   
   saveData(data = clientTable$data,
            filepath = clientTablePath) # Save the clients table
@@ -392,7 +402,7 @@ edit_plans_table <- function(input, planHistoricalTable, tablePath, clientTable,
   
   if(clmn == 5){
     
-    new_value <- input$planSellTable_cell_edit$value - planHistoricalTable$data[row, clmn]
+    new_value <- as.numeric(input$planSellTable_cell_edit$value) - as.numeric(planHistoricalTable$data[row, clmn])
     
     idcliente <- planHistoricalTable$data[row, "idCliente"] # Getting the product name
     

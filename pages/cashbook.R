@@ -117,11 +117,11 @@ cashbookMainPage <- function(tabName, sellingProductDB, sellingPlanDB, inventory
     fluidRow(
       column(
         width = 6,
-        plotOutput("donutPlot", height = "300px")
+        uiOutput("donutPlot", height = "270px")
       ),
       column(
         width = 6,
-        plotOutput("linePlot", height = "300px")
+        uiOutput("linePlot", height = "270px")
       )
     )
   )
@@ -196,81 +196,100 @@ monthly_spents <- function(buyingDB){
 }
 
 ## Donuts graph ----
-donuts_graph <- function(sellingProductDB){
+donuts_graph <- function(output, sellingProductDB){
   
-  sellingProductDB$data$Quantidade <- as.numeric(sellingProductDB$data$Quantidade)
+  output$donutPlot <- renderUI({
+    withSpinner(plotOutput("donutMaking"), size = 0.4)
+  })
   
-  data <- sellingProductDB$data %>%
-    dplyr::select(Categoria, Quantidade)
+  output$donutMaking <- renderPlot({
+    
+    sellingProductDB$data$Quantidade <- as.numeric(sellingProductDB$data$Quantidade)
+    
+    data <- sellingProductDB$data %>%
+      dplyr::select(Categoria, Quantidade)
+    
+    graph <- ggplot(data, aes(x = '', y = Quantidade, fill=Categoria)) +
+      ggtitle("Qual produto vende mais?")+
+      theme(axis.text = element_rect(fill = "#ecf3f1"),
+            axis.title = element_rect(fill = "#ecf3f1"),
+            axis.ticks = element_rect(fill = "#ecf3f1"),
+            panel.grid  = element_rect(fill = "#ecf3f1"),
+            legend.position="none",
+            line = element_rect(fill = "#ecf3f1")
+      )+
+      geom_bar(stat = "identity", width = 1) +
+      coord_polar(theta = "y") +
+      scale_fill_brewer(palette = "Dark2") +
+      theme_void()
+    
+    return(graph)
+    
+    
+  })
   
-  graph <- ggplot(data, aes(x = '', y = Quantidade, fill=Categoria)) +
-          ggtitle("Qual produto vende mais?")+
-          theme(axis.text = element_blank(),
-                axis.title = element_blank(),
-                axis.ticks = element_blank(),
-                panel.grid  = element_blank(),
-                legend.position="none",
-                line = element_blank()
-          )+
-          geom_bar(stat = "identity", width = 1) +
-          coord_polar(theta = "y") +
-          scale_fill_brewer(palette = "Dark2") +
-            theme_void()
   
-  return(graph)
 }
 
 ## Line graph ----
-line_graph <- function(sellingProductDB, sellingPlanDB, buyingDB){
+line_graph <- function(output, sellingProductDB, sellingPlanDB, buyingDB){
   
+  output$linePlot <- renderUI({
+    withSpinner(plotOutput("lineMaking"), size = 0.4)
+  })
   
-  sellingProductDB$data$Data <- as.Date(sellingProductDB$data$Data)
+  output$lineMaking <- renderPlot({
   
-  sellingProductDB <- sellingProductDB$data %>%
-    select(Quantidade,Valor,Data)
-  
-  sellingPlanDB$data$Data <- as.Date(sellingPlanDB$data$Data_Inicio)
-  
-  sellingPlanDB <- sellingPlanDB$data %>%
-    select(Valor,Data)
-  
-  sellingPlanDB$Quantidade <- 1
-  
-  buyingDB$data$Data <- as.Date(buyingDB$data$Data, format = "%Y-%m-%d")
-  
-  buyingDB <- buyingDB$data %>%
-    select(Quantidade,Valor.de.Compra,Data) %>%
-    rename(Valor = Valor.de.Compra)
-  
-  buyingDB$Valor <- as.numeric(buyingDB$Valor)
-  buyingDB$Quantidade <- as.numeric(buyingDB$Quantidade)
-  
-  sellingPlanDB$Valor <- as.numeric(sellingPlanDB$Valor)
-  sellingPlanDB$Quantidade <- as.numeric(sellingPlanDB$Quantidade)
-  
-  sellingProductDB$Valor <- as.numeric(sellingProductDB$Valor)
-  sellingProductDB$Quantidade <- as.numeric(sellingProductDB$Quantidade)
-  
-  combined_data <- bind_rows(
-    mutate(buyingDB, Type = "Compra"),
-    mutate(sellingPlanDB, Type = "Venda"),
-    mutate(sellingProductDB, Type = "Venda")
-  )
-  
-  combined_data <- combined_data %>%
-    mutate(Month = format(Data, "%Y/%m"),
-           MonthlyAmountValue = Quantidade * Valor) %>%
-    group_by(Type, Month) %>%
-    summarise(MeanAmountValue = mean(MonthlyAmountValue))
-  
-  # Create Line Graph
-  ggplot(combined_data, aes(x = Month, y = MeanAmountValue, color = Type, group = Type)) +
-    geom_line() +
-    geom_point() +
-    labs(title = "Compra x Venda",
-         x = "Data",
-         y = "Valor",
-         color = "Tipo") +
-    theme_minimal()
+    sellingProductDB$data$Data <- as.Date(sellingProductDB$data$Data)
+    
+    sellingProductDB <- sellingProductDB$data %>%
+      select(Quantidade,Valor,Data)
+    
+    sellingPlanDB$data$Data <- as.Date(sellingPlanDB$data$Data_Inicio)
+    
+    sellingPlanDB <- sellingPlanDB$data %>%
+      select(Valor,Data)
+    
+    sellingPlanDB$Quantidade <- 1
+    
+    buyingDB$data$Data <- as.Date(buyingDB$data$Data, format = "%Y-%m-%d")
+    
+    buyingDB <- buyingDB$data %>%
+      select(Quantidade,Valor.de.Compra,Data) %>%
+      rename(Valor = Valor.de.Compra)
+    
+    buyingDB$Valor <- as.numeric(buyingDB$Valor)
+    buyingDB$Quantidade <- as.numeric(buyingDB$Quantidade)
+    
+    sellingPlanDB$Valor <- as.numeric(sellingPlanDB$Valor)
+    sellingPlanDB$Quantidade <- as.numeric(sellingPlanDB$Quantidade)
+    
+    sellingProductDB$Valor <- as.numeric(sellingProductDB$Valor)
+    sellingProductDB$Quantidade <- as.numeric(sellingProductDB$Quantidade)
+    
+    combined_data <- bind_rows(
+      mutate(buyingDB, Type = "Compra"),
+      mutate(sellingPlanDB, Type = "Venda"),
+      mutate(sellingProductDB, Type = "Venda")
+    )
+    
+    combined_data <- combined_data %>%
+      mutate(Month = format(Data, "%Y/%m"),
+             MonthlyAmountValue = Quantidade * Valor) %>%
+      group_by(Type, Month) %>%
+      summarise(MeanAmountValue = mean(MonthlyAmountValue))
+    
+    # Create Line Graph
+    graph <- ggplot(combined_data, aes(x = Month, y = MeanAmountValue, color = Type, group = Type)) +
+      geom_line() +
+      geom_point() +
+      labs(title = "Compra x Venda",
+           x = "Data",
+           y = "Valor",
+           color = "Tipo") +
+      theme_minimal()
+    
+    return(graph)
+  })
   
 }

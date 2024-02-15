@@ -52,7 +52,8 @@ clients_and_plans_MainPage <- function(tabName){
             ),
             br(),
             DTOutput(
-              outputId = "clientsTable"
+              outputId = "clientsTable",
+              width = "auto"
             )
           )
         )
@@ -85,7 +86,8 @@ clients_and_plans_MainPage <- function(tabName){
             ),
             br(),
             DTOutput(
-              outputId = "plansTable"
+              outputId = "plansTable",
+              width = "auto"
             )
           )
         )
@@ -96,8 +98,8 @@ clients_and_plans_MainPage <- function(tabName){
 }
 
 ## Add Modals ----
-add_client_modal <- function(){
-  
+add_client_modal <- function(planDB){
+  my_autocomplete_list <- planDB$data[,"Nome"]
   modalDialog(
     title = "Adicionar Cliente",
     size = "m",
@@ -137,10 +139,17 @@ add_client_modal <- function(){
         label = NULL,
         placeholder = "Contato"
       ),
-      textInput(
-        inputId = "planoCliente",
-        label = NULL,
-        placeholder = "Plano escolhido"
+      column(
+        width = 12,
+        style="z-index:1002; margin-bottom: 15px; padding-left: 0px;",
+        selectizeInput(
+          inputId = "planoCliente",
+          label = "Plano escolhido",
+          choices = my_autocomplete_list,
+          selected = NULL,
+          multiple = FALSE,
+          options = list(create = TRUE)
+        )
       ),
       selectInput(
         inputId = "porteAnimal",
@@ -214,10 +223,10 @@ edit_client <- function(input, ct, tablePath, calendarDB, calendarFilePath){
     ID <- ct$data[["clienteId"]][[row]]
     columnName <- names(ct$data[clmn])
     if(columnName == "Aniversario_Animal"){
-      rowValue = "Aniversario do pet"
+      rowValue = "Aniversario de pet"
     }
     if(columnName == "Aniversario_Dono"){
-      rowValue = "Aniversario do tutor"
+      rowValue = "Aniversario de tutor"
     }
     if(columnName == "Data_Inicio"){
       rowValue = "Aniversario de fidelizacao"
@@ -233,19 +242,17 @@ edit_client <- function(input, ct, tablePath, calendarDB, calendarFilePath){
     
     newDB <- calendarDB$data %>%
       filter(idCliente == as.character(ID),
-             body == rowValue)
+             title == rowValue)
     
     newDB$start <- unlist(date_list)
     newDB$end <- unlist(date_list)
     
-    updated_calendarDB <- dplyr::anti_join(calendarDB$data, newDB, by = c("idCliente"))
-    
+    updated_calendarDB <- dplyr::anti_join(calendarDB$data, newDB, by = c("calendarId"))
     updated_calendarDB <- dplyr::bind_rows(updated_calendarDB, newDB)
-    
     updated_calendarDB <- dplyr::arrange(updated_calendarDB, calendarId)
-    
+
     calendarDB$data <- updated_calendarDB
-    
+  
     saveData(data = calendarDB$data,
              filepath = calendarFilePath)
   }
@@ -332,8 +339,8 @@ add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAn
     new_date_Pet <- as.Date(as.character(aniversarioAnimal), "%Y-%m-%d") + years(i)
     add_calendar(filePath = calendarFilePath,
                  database = calendarDB,
-                 calendarName = paste("Aniversario de", nomeAnimal),
-                 calendarDescription = paste("Aniversario do pet, contato:", contatoCliente),
+                 calendarName = "Aniversario de pet",
+                 calendarDescription = paste("Aniversario de", nomeAnimal, "contato:", contatoCliente),
                  calendarStart = new_date_Pet,
                  calendarEnd = new_date_Pet,
                  calendarCategory = "TRUE",
@@ -345,8 +352,8 @@ add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAn
     new_date_Cliente <- as.Date(as.character(aniversarioCliente), "%Y-%m-%d") + years(i)
     add_calendar(filePath = calendarFilePath,
                  database = calendarDB,
-                 calendarName = paste("Aniversario de", nomeTutor),
-                 calendarDescription = paste("Aniversario de Tutor, contato:", contatoCliente),
+                 calendarName = "Aniversario de tutor",
+                 calendarDescription = paste("Aniversario de", nomeTutor, "contato:", contatoCliente),
                  calendarStart = new_date_Cliente,
                  calendarEnd = new_date_Cliente,
                  calendarCategory = "TRUE",
@@ -358,8 +365,8 @@ add_clients <- function(database, filePath, nomeAnimal, nomeTutor, aniversarioAn
     new_date_Fidel <- as.Date(as.character(clienteDesde), "%Y-%m-%d") + years(i)
     add_calendar(filePath = calendarFilePath,
                  database = calendarDB,
-                 calendarName = paste("Aniversario de cliente de", nomeAnimal),
-                 calendarDescription = paste("Aniversario de Fidelizacao, contato:", contatoCliente),
+                 calendarName = "Aniversario de fidelizacao",
+                 calendarDescription = paste("Aniversario de Fidelizacao de", nomeAnimal, "contato:", contatoCliente),
                  calendarStart = new_date_Fidel,
                  calendarEnd = new_date_Fidel,
                  calendarCategory = "TRUE",
