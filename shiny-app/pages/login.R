@@ -55,11 +55,12 @@ validate_pwd <- function(input, output, session, data, user_col, pwd_col){
     
     if(input$password == dataFiltered$Senha){
       validate <- TRUE
+      
+      shinyjs::hide(id = "login")
+      
+      return(c(validate = validate, table = dataFiltered))
     }
     
-    if(validate) shinyjs::hide(id = "login")
-    
-    return(c(validate = validate, table = dataFiltered))
     
   })
   

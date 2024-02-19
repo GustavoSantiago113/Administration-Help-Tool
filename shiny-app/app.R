@@ -65,7 +65,7 @@ server <- function(input, output, session) {
   output$web_page <- renderUI({
     
     tagList(
-      #login_ui(id = "login", "Login"),
+      login_ui(id = "login", "Login"),
       
       uiOutput(outputId = "website")
     )
@@ -77,12 +77,12 @@ server <- function(input, output, session) {
     #req(validate()$validate)
     
     dashboardPage(
-      header = dashboardHeader(title = "Bella Pet" # Title
-                      # tags$li(class = "dropdown",
-                      #         tags$p(class = "greetings",
-                      #                paste("Ola,", validate()$table.Nome)),
-                      #         tags$img(class = "profile_img",
-                      #                  src = validate()$table.Imagem)) #Name and picture in the right corner
+      header = dashboardHeader(title = "Bella Pet" ,# Title
+                      tags$li(class = "dropdown",
+                              tags$p(class = "greetings",
+                                     paste("Ola,", validate()$table.Nome)),
+                              tags$img(class = "profile_img",
+                                       src = validate()$table.Imagem)) #Name and picture in the right corner
                       ), # Header
       sidebar = dashboardSidebar(
         ### Side Bar Menu ----
@@ -95,19 +95,17 @@ server <- function(input, output, session) {
           #### Calendar ----
           menuCalendar(),
           #### Cash book ----
-          # if(validate()$table.Permissao == "admin"){
-          #   menuCashBook()
-          # },
-          menuCashBook(),
+          if(validate()$table.Permissao == "admin"){
+            menuCashBook()
+          },
           #### Simulator ----
           menuSimulator(),
           #### Clients and Plans ----
           clientePlano(),
           #### Fiscal Note ----
-          # if(validate()$table.Permissao == "admin"){
-          #   fiscalNote()
-          # }
-          fiscalNote()
+          if(validate()$table.Permissao == "admin"){
+            fiscalNote()
+          }
         )
       ),
       body = dashboardBody(

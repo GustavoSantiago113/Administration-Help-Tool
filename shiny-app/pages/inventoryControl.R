@@ -194,9 +194,11 @@ add_inventory_modal <- function(input){
       selectInput(
         inputId = "categoriaEstoque",
         label = NULL,
-        choices = c("Racao" = "Racao",
-                    "Banho e Tosa" = "Banho e Tosa",
-                    "Roupinha" = "Roupinha")
+        choices = c("Higiene" = "Higiene",
+                    "Petiscos" = "Petiscos",
+                    "Bebedouro e Comedouro" = "Bebedouro e Comedouro",
+                    "Roupinha" = "Roupinha",
+                    "Brinquedos" = "Brinquedos")
       ),
       actionButton(inputId = "inventoryAdd", 
                      label   = "Adicionar ao estoque", 

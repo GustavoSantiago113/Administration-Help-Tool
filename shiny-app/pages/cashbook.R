@@ -4,7 +4,6 @@ library(shinydashboard)
 library(lubridate)
 library(tidyverse)
 library(ggplot2)
-library(plotly)
 
 # UI -----
 
@@ -48,7 +47,7 @@ cashbookMainPage <- function(tabName, sellingProductDB, sellingPlanDB, inventory
         valueBox(value = monthly_profit(sellingProductDB, sellingPlanDB),
                  subtitle = paste("Entrada do mes de", month(ymd(Sys.Date()),
                                                              label = TRUE,
-                                                             locale = "pt_BR",
+                                                             locale = Sys.getlocale("LC_TIME"),
                                                              abbr = FALSE)),
                  color = "navy",
                  width = NULL,
@@ -101,7 +100,7 @@ cashbookMainPage <- function(tabName, sellingProductDB, sellingPlanDB, inventory
         valueBox(value = monthly_spents(buyingDB),
                  subtitle = paste("Gastos de", month(ymd(Sys.Date()), 
                                                     label = TRUE, 
-                                                    locale = "pt_BR",
+                                                    locale = Sys.getlocale("LC_TIME"),
                                                     abbr = FALSE)),
                  color = "teal",
                  width = NULL,
