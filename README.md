@@ -116,9 +116,7 @@ The tool structure consists on a main script containing the [Ui and server side]
 
 Below there is a screen recording using the tool.
 
-<center> Record of tool usage </center>
-
-Record.mp4
+[![Check it out](Record.mov)](https://github.com/GustavoSantiago113/Administration-Help-Tool/assets/104911112/a7ae8c7d-acff-45d3-a958-1369e2d59ec1)
 
 As shown, it is possible to see that the user can login, and perform some operations. To add data to the tables, the user clicks and opens a modal, then the user fills the form and presses to add. To remove, the user has to click on the desired row and click on delete. To edit, user have to double click in the desired cell, insert the new value and click outside the table. Some tables allow to remove more than one row, while others allow just one row at a time.
 
