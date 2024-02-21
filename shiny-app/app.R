@@ -74,7 +74,7 @@ server <- function(input, output, session) {
   ## Render Website ----
   output$website <- renderUI({
     
-    #req(validate()$validate)
+    req(validate()$validate)
     
     dashboardPage(
       header = dashboardHeader(title = "Bella Pet" ,# Title
@@ -400,7 +400,7 @@ server <- function(input, output, session) {
                                              clienteDesde = input$clienteDesde,
                                              contatoCliente = input$contatoCliente,
                                              porteAnimal = input$porteAnimal,
-                                             planoCliente = input$planoCliente,
+                                             planoCliente = "",
                                              calendarDB = cl,
                                              calendarFilePath = calendarPath
                                              ) # Add client to database

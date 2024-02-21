@@ -320,16 +320,18 @@ add_to_plan <- function(input, clientTable, planTable, clientTablePath, planSell
   dono <- clientTable$data[rowClient, "Dono"]
   date <- as.character(Sys.Date())
   idCliente <- as.numeric(clientTable$data[rowClient, "clienteId"])
+  plano <- planTable$data[rowPlan, "Nome"]
   
   # Create variables to store the value and number of visits of selected plan
   value <- planTable$data[rowPlan, "Venda"]
   num_visitas <- as.numeric(planTable$data[rowPlan, "Visitas"])
   
-  planSellTable$data[nrow(planSellTable$data)+1,] <- c(name, dono, value, date, num_visitas, idCliente) # Append the variables to the plan sell table
+  planSellTable$data[nrow(planSellTable$data)+1,] <- c(name, dono, value, date, num_visitas, plano, idCliente) # Append the variables to the plan sell table
   
   saveData(data = planSellTable$data,
            filepath = planSellTablePath) # Save the plan sells historical
   
+  clientTable$data[rowClient, "Plano"] <- planTable$data[rowPlan, "Nome"]
   clientTable$data[rowClient, "Visitas_Restantes"] <- as.numeric(clientTable$data[rowClient, "Visitas_Restantes"]) + as.numeric(planTable$data[rowPlan, "Visitas"]) # Checkpoint in the clients table, adding the visits
   
   saveData(data = clientTable$data,

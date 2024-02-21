@@ -140,18 +140,6 @@ add_client_modal <- function(planDB){
         label = NULL,
         placeholder = "Contato"
       ),
-      column(
-        width = 12,
-        style="z-index:1002; margin-bottom: 15px; padding-left: 0px;",
-        selectizeInput(
-          inputId = "planoCliente",
-          label = "Plano escolhido",
-          choices = my_autocomplete_list,
-          selected = NULL,
-          multiple = FALSE,
-          options = list(create = TRUE)
-        )
-      ),
       selectInput(
         inputId = "porteAnimal",
         label = NULL,

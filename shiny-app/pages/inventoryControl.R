@@ -154,9 +154,11 @@ add_buy_modal <- function(inventoryDB){
       selectInput(
         inputId = "categoriaCompra",
         label = NULL,
-        choices = c("Racao" = "Racao",
-                    "Banho e Tosa" = "Banho e Tosa",
-                    "Roupinha" = "Roupinha")
+        choices = c("Higiene" = "Higiene",
+                    "Petiscos" = "Petiscos",
+                    "Bebedouro e Comedouro" = "Bebedouro e Comedouro",
+                    "Roupinha" = "Roupinha",
+                    "Brinquedos" = "Brinquedos")
       ),
       actionButton(inputId = "buyAdd", 
                      label   = "Adicionar a compras", 
@@ -240,7 +242,7 @@ edit_buy <- function(input, bt, tablePath, inventoryTable, inventoryTablePath){
     # Find the products and remove the amounts
     newDB <- inventoryTable$data %>%
       filter(Nome == product) %>%
-      mutate(Quantidade = Quantidade - as.numeric(amount)) 
+      mutate(Quantidade = Quantidade - amount)
     
     # Combine the inventory table with the cart table
     updated_inventoryDB <- dplyr::anti_join(inventoryTable$data, newDB, by = c("Nome"))
@@ -281,7 +283,7 @@ remove_buy <- function(input, bt, tablePath, inventoryTable, inventoryTablePath)
     # Find the products and remove the amounts
     newDB <- inventoryTable$data %>%
       filter(Nome == product) %>%
-      mutate(Quantidade = Quantidade - as.numeric(amount)) 
+      mutate(Quantidade = as.numeric(Quantidade) - as.numeric(amount)) 
     
     # Combine the inventory table with the cart table
     updated_inventoryDB <- dplyr::anti_join(inventoryTable$data, newDB, by = c("Nome"))

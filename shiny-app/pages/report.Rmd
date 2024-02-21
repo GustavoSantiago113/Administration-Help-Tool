@@ -19,10 +19,10 @@ Esse documento vai te ajudar na declaracao do seu imposto
 ```{r, echo=FALSE}
 
 ano <- params$ano
-
+ano <- 2024
 data <- read.csv("../data/compra.csv")
 
-data$Data <- format(as.Date(data$Data, format = '%d/%m/%Y'),'%Y/%m/%d')
+data$Data <- format(as.Date(data$Data, format = '%Y-%m-%d'),'%Y/%m/%d')
 
 product_data <- data %>%
   dplyr::select(Nome, Data, Nota, Fornecedor) %>%
