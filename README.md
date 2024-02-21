@@ -90,9 +90,13 @@ In the tool, the style was set using this [css](./shiny-app/www/styles.css) file
 The tool structure consists on a main script containing the [Ui and server side](./shiny-app/app.R), other scripts in the folder [pages](./shiny-app/pages/), and the data in the folder [data](./shiny-app/data/). The scripts on pages folder has functions containing Ui and back-end. The main script load the functions while loading using the function "source()". It also loads the data using the function "read.csv()" when starts. The overall look is as follow:
 
 +- app.R
+
 +- pages
+
 +--- files.R containing Ui and backend functions for each [functions embed topic](#2-functions-embed).
+
 +- data
+
 +--- .csv files containing the tables used in the tool.
 
 ## 5. Libraries Used
