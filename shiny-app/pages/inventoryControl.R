@@ -97,7 +97,7 @@ inventoryControlMainPage <- function(tabName){
 
 ## Add Modals ----
 # Modal for buying
-add_buy_modal <- function(inventoryDB){
+add_buy_modal <- function(inventoryDB, input){
   
   my_autocomplete_list <- inventoryDB$data[,"Nome"]
   modalDialog(
@@ -153,13 +153,23 @@ add_buy_modal <- function(inventoryDB){
       ),
       selectInput(
         inputId = "categoriaCompra",
-        label = NULL,
+        label = "Categoria",
         choices = c("Higiene" = "Higiene",
                     "Petiscos" = "Petiscos",
                     "Bebedouro e Comedouro" = "Bebedouro e Comedouro",
                     "Roupinha" = "Roupinha",
                     "Brinquedos" = "Brinquedos")
       ),
+      br(),
+      radioButtons(
+        inputId = "pagamentoCompraProduto",
+        label = "Forma de pagamento",
+        choices = c("A vista" = "avista",
+                    "Parcelado em" = "parcelado"),
+        inline = TRUE
+      ),
+      uiOutput("parcelasCompraProdutoUI"),
+      br(),
       actionButton(inputId = "buyAdd", 
                      label   = "Adicionar a compras", 
                      style = "background-color: #76bfac; color: white; font-family: 'Bahnschrift'; font-size: 20px; height: 50px; margin-left: 10px; margin-right: 10px;")
@@ -316,7 +326,13 @@ add_inventory <- function(database, name, amount, category, sellValue, filePath)
   
 }
 # Add to buy
-add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, seller, buyDate, category, filePath, inventoryDB, inventoryDBPath){
+add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, seller, buyDate, category, filePath, inventoryDB, inventoryDBPath, input){
+  
+  if(input$pagamentoCompraProduto == "avista"){
+    parcelas <- 1
+  } else{
+    parcelas <- input$parcelasCompraProduto
+  }
   
   database$data[nrow(database$data)+1,] <- c(name,
                                              as.numeric(amount),
@@ -325,7 +341,8 @@ add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, sel
                                              format(as.Date(buyDate), "%Y-%m-%d"),
                                              category,
                                              noteNumber,
-                                             seller) # Add to the data the input data in the last row
+                                             seller,
+                                             parcelas) # Add to the data the input data in the last row
   saveData(data = database$data,
            filepath = filePath) # Save the updates
 

@@ -137,7 +137,7 @@ add_product_modal <- function(input){
     size = "m",
     easyClose = TRUE,
     div(
-      style="z-index:1002; background-color: white; padding: 10px",
+      style="z-index:1002; padding: 10px",
       textInput(
         inputId = "clientSell",
         label = "Adicione o nome do cliente",
@@ -159,6 +159,15 @@ add_product_modal <- function(input){
       DTOutput(
         outputId = "cart"
       ),
+      br(),
+      radioButtons(
+        inputId = "pagamentoVendaProduto",
+        label = "Forma de pagamento",
+        choices = c("A vista" = "avista",
+                    "Parcelado em" = "parcelado"),
+        inline = TRUE
+      ),
+      uiOutput("parcelasVendaProdutoUI"),
       br(),
       actionButton(
         inputId = "removeCart",
@@ -186,7 +195,7 @@ add_visit_modal <- function(){
     size = "m",
     easyClose = TRUE,
     div(
-      style="z-index:1002; background-color: white; padding: 10px",
+      style="z-index:1002; padding: 10px",
       tags$h3("Escolha o cliente"),
       DTOutput(
         outputId = "clientForCheckpoint",
@@ -212,7 +221,7 @@ add_plan_sell_modal <- function(){
     size = "m",
     easyClose = TRUE,
     div(
-      style="z-index:1002; background-color: white; padding: 10px",
+      style="z-index:1002; padding: 10px",
       tags$h3("Escolha um plano"),
       DTOutput(
         outputId = "planForSell",
@@ -224,6 +233,15 @@ add_plan_sell_modal <- function(){
         outputId = "clientForSell",
         width = "auto"
       ),
+      br(),
+      radioButtons(
+        inputId = "pagamentoVendaPlano",
+        label = "Forma de pagamento",
+        choices = c("A vista" = "avista",
+                    "Parcelado em" = "parcelado"),
+        inline = TRUE
+      ),
+      uiOutput("parcelasVendaPlanoUI"),
       br(),
       disabled(
         actionButton(
@@ -255,11 +273,19 @@ add_to_cart <- function(input, inventoryTable, cartTable){
   
 }
 # Add data to the sells historic data and modify the amount in inventory
-add_to_sell_table <- function(sellProductTable, cartTable, client, sellProductTablePath, inventoryTable, inventoryTablePath){
+add_to_sell_table <- function(sellProductTable, cartTable, client, sellProductTablePath, inventoryTable, inventoryTablePath, input){
   
   # Append the client name, today's date amount to the cart data
   cartTable$data$Data <- format(as.Date(Sys.Date()), "%Y-%m-%d")
   cartTable$data$Cliente <- client
+  
+  if(input$pagamentoVendaProduto == "avista"){
+    parcelas <- 1
+  } else{
+    parcelas <- input$parcelasVendaProduto
+  }
+  
+  cartTable$data$Parcelas <- parcelas
   
   sellProductTable$data <- rbind(cartTable$data, sellProductTable$data)# Combine the cart table with the sells historic table
   
@@ -326,7 +352,13 @@ add_to_plan <- function(input, clientTable, planTable, clientTablePath, planSell
   value <- planTable$data[rowPlan, "Venda"]
   num_visitas <- as.numeric(planTable$data[rowPlan, "Visitas"])
   
-  planSellTable$data[nrow(planSellTable$data)+1,] <- c(name, dono, value, date, num_visitas, plano, idCliente) # Append the variables to the plan sell table
+  if(input$pagamentoVendaPlano == "avista"){
+    parcelas <- 1
+  } else{
+    parcelas <- input$parcelasVendaPlano
+  }
+  
+  planSellTable$data[nrow(planSellTable$data)+1,] <- c(name, dono, value, date, num_visitas, plano, idCliente, parcelas) # Append the variables to the plan sell table
   
   saveData(data = planSellTable$data,
            filepath = planSellTablePath) # Save the plan sells historical

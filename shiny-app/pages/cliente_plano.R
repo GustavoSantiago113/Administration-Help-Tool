@@ -145,7 +145,8 @@ add_client_modal <- function(planDB){
         label = NULL,
         choices = c("Pequeno" = "Pequeno",
                     "Medio" = "Medio",
-                    "Grande" = "Grande")
+                    "Grande" = "Grande",
+                    "Extra Grande" = "Extra Grande")
       ),
       actionButton(inputId = "clientAdd", 
                    label   = "Adicionar a clientes", 

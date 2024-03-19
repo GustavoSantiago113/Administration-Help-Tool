@@ -77,7 +77,7 @@ server <- function(input, output, session) {
     req(validate()$validate)
     
     dashboardPage(
-      header = dashboardHeader(title = "Bella Pet" ,# Title
+      header = dashboardHeader(title = "Bela Pet" ,# Title
                       tags$li(class = "dropdown",
                               tags$p(class = "greetings",
                                      paste("Ola,", validate()$table.Nome)),
@@ -234,7 +234,21 @@ server <- function(input, output, session) {
                                                     client = input$clientSell,
                                                     sellProductTablePath = sellsProductPath,
                                                     inventoryTable = it,
-                                                    inventoryTablePath = inventoryPath)}) #Finish sell
+                                                    inventoryTablePath = inventoryPath,
+                                                    input)}) #Finish sell
+  output$parcelasVendaProdutoUI <- renderUI({
+    if (input$pagamentoVendaProduto == "parcelado") {
+      numericInput(
+        inputId = "parcelasVendaProduto",
+        label = NULL,
+        value = 2,
+        min = 2,
+        width = "100px"
+      )
+    } else {
+      NULL
+    }
+  }) # Input for number of parcels
 
   observeEvent(input$addVisita, {add_to_visit(input,
                                               clientTable = ct,
@@ -247,6 +261,19 @@ server <- function(input, output, session) {
                                              clientTablePath = clientsPath,
                                              planSellTable = planSellHistorical,
                                              planSellTablePath = sellPlanPath)})  # Add plan sell to historical
+  output$parcelasVendaPlanoUI <- renderUI({
+    if (input$pagamentoVendaPlano == "parcelado") {
+      numericInput(
+        inputId = "parcelasVendaPlano",
+        label = NULL,
+        value = 2,
+        min = 2,
+        width = "100px"
+      )
+    } else {
+      NULL
+    }
+  }) # Input for number of parcels
   
   #### Remove Rows ----
   observeEvent(input$removeCart, {remove_from_cart(input, cartReactive)}) #Remove product from cart
@@ -300,7 +327,20 @@ server <- function(input, output, session) {
                                                   category = input$categoriaEstoque,
                                                   filePath = inventoryPath,
                                                   sellValue = input$valorEstoque)}) # Add inventory data
-  observeEvent(input$addBuy, {add_buy_modal(it)}) # Modal for buy table
+  observeEvent(input$addBuy, {add_buy_modal(it, input)}) # Modal for buy table
+  output$parcelasCompraProdutoUI <- renderUI({
+    if (input$pagamentoCompraProduto == "parcelado") {
+      numericInput(
+        inputId = "parcelasCompraProduto",
+        label = NULL,
+        value = 2,
+        min = 2,
+        width = "100px"
+      )
+    } else {
+      NULL
+    }
+  }) # Input for number of parcels
   observeEvent(input$buyAdd, {add_buy(name = input$nomeCompra,
                                       amount = input$quantidadeCompra,
                                       buyValue = input$valorCompra,
@@ -312,7 +352,8 @@ server <- function(input, output, session) {
                                       database = bt,
                                       filePath = buysPath,
                                       inventoryDB = it,
-                                      inventoryDBPath = inventoryPath) #Add buying table data
+                                      inventoryDBPath = inventoryPath,
+                                      input) #Add buying table data
   })
   
   ### Calendar ----

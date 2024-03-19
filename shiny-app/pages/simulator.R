@@ -52,7 +52,7 @@ simulatorMainPage <- function(tabName){
         ),
         numericInput(
           inputId = "lucroSimulador",
-          label = "Lucro desejado (%):",
+          label = "Lucro desejado:",
           value = 0,
           min = 0,
         ),
@@ -85,7 +85,7 @@ simulatorMainPage <- function(tabName){
         ),
         numericInput(
           inputId = "lucroSimulador1",
-          label = "Lucro desejado (%):",
+          label = "Lucro desejado:",
           value = 0,
           min = 0,
         ),
@@ -152,7 +152,7 @@ soma_preco <- function(counter, input, maodeobraSimulador, lucroSimulador, impos
   })
   
   total_cost <- sum(unlist(inputValues)) + maodeobraSimulador # Calculate cost
-  lucro <- total_cost + (total_cost * (lucroSimulador/100)) # Calculate profit
+  lucro <- total_cost + lucroSimulador # Calculate profit
   preco_final <- lucro + (lucro * (impostoSimulador/100)) # Include taxes
   
   return(preco_final)
@@ -178,7 +178,7 @@ output_preco <- function(preco_final){
 # Calculate and output the new product price
 simulador_produto <- function(novoCustoSimulador, impostoSimulador1, lucroSimulador1){
   
-  valorDeVenda <- ( novoCustoSimulador + (novoCustoSimulador * (lucroSimulador1/100) ) ) # Calculate selling price
+  valorDeVenda <- novoCustoSimulador + lucroSimulador1 # Calculate selling price
   
   valorDeVenda_imposto <- valorDeVenda + ( valorDeVenda * (impostoSimulador1/100) ) # Include taxes
   

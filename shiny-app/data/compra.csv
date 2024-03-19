@@ -1,2 +1,2 @@
-"Nome","Quantidade","Valor.de.Compra","Valor.de.Venda","Data","Categoria","Nota","Fornecedor"
-
+"Nome","Quantidade","Valor.de.Compra","Valor.de.Venda","Data","Categoria","Nota","Fornecedor","Parcelas"
+"Shampoo","10","25","30","2024-03-18","Higiene","42434345","Tamara Gomes","5"
