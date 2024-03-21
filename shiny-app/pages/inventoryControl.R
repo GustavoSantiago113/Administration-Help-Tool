@@ -158,7 +158,9 @@ add_buy_modal <- function(inventoryDB, input){
                     "Petiscos" = "Petiscos",
                     "Bebedouro e Comedouro" = "Bebedouro e Comedouro",
                     "Roupinha" = "Roupinha",
-                    "Brinquedos" = "Brinquedos")
+                    "Brinquedos" = "Brinquedos",
+                    "Caminha" = "Caminha",
+                    "Acessorio" = "Acessorio")
       ),
       br(),
       radioButtons(
@@ -333,6 +335,7 @@ add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, sel
   } else{
     parcelas <- input$parcelasCompraProduto
   }
+  dataFim <- ymd(Sys.Date()) %m+% months(parcelas-1)
   
   database$data[nrow(database$data)+1,] <- c(name,
                                              as.numeric(amount),
@@ -342,7 +345,8 @@ add_buy <- function(database, name, amount, buyValue, sellValue, noteNumber, sel
                                              category,
                                              noteNumber,
                                              seller,
-                                             parcelas) # Add to the data the input data in the last row
+                                             parcelas,
+                                             format(as.Date(dataFim), "%Y-%m-%d")) # Add to the data the input data in the last row
   saveData(data = database$data,
            filepath = filePath) # Save the updates
 

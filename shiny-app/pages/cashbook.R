@@ -135,20 +135,20 @@ monthly_profit <- function(sellingProductDB, sellingPlanDB){
   ano <- year(ymd(Sys.Date()))
   mes <- month(ymd(Sys.Date()))
   
-  sellingProductDB$Data <- as.Date(sellingProductDB$Data)
-  sellingPlanDB$Data_Inicio <- as.Date(sellingPlanDB$Data_Inicio) 
+  sellingProductDB$Data.Fim <- as.Date(sellingProductDB$Data.Fim)
+  sellingPlanDB$Data.Fim <- as.Date(sellingPlanDB$Data.Fim) 
 
   filteredProductDB <- sellingProductDB %>%
-    filter(year(Data) == ano,
-           month(Data) == mes)
+    filter(year(Data.Fim) >= ano,
+           month(Data.Fim) >= mes)
   
-  totalProduct <- sum(as.numeric(filteredProductDB$Valor) * as.numeric(filteredProductDB$Quantidade))
+  totalProduct <- sum(as.numeric(filteredProductDB$Valor) * as.numeric(filteredProductDB$Quantidade)) / as.numeric(filteredProductDB$Parcelas)
 
   filteredPlanDB <- sellingPlanDB %>%
-    filter(year(Data_Inicio) == ano,
-           month(Data_Inicio) == mes)
+    filter(year(Data.Fim) >= ano,
+           month(Data.Fim) >= mes)
   
-  totalPlan <- sum(filteredPlanDB$Valor)
+  totalPlan <- sum(filteredPlanDB$Valor) / as.numeric(filteredPlanDB$Parcelas)
   
   return(totalProduct+totalPlan)
 
@@ -244,12 +244,12 @@ line_graph <- function(output, sellingProductDB, sellingPlanDB, buyingDB){
     sellingProductDB <- sellingProductDB$data %>%
       select(Quantidade,Valor,Data)
     
-    sellingPlanDB$data$Data <- as.Date(sellingPlanDB$data$Data_Inicio)
-    
-    sellingPlanDB <- sellingPlanDB$data %>%
-      select(Valor,Data)
-    
-    sellingPlanDB$Quantidade <- 1
+    # sellingPlanDB$data$Data <- as.Date(sellingPlanDB$data$Data_Inicio)
+    # 
+    # sellingPlanDB <- sellingPlanDB$data %>%
+    #   select(Valor,Data)
+    # 
+    # sellingPlanDB$Quantidade <- 1
     
     buyingDB$data$Data <- as.Date(buyingDB$data$Data, format = "%Y-%m-%d")
     
@@ -260,15 +260,15 @@ line_graph <- function(output, sellingProductDB, sellingPlanDB, buyingDB){
     buyingDB$Valor <- as.numeric(buyingDB$Valor)
     buyingDB$Quantidade <- as.numeric(buyingDB$Quantidade)
     
-    sellingPlanDB$Valor <- as.numeric(sellingPlanDB$Valor)
-    sellingPlanDB$Quantidade <- as.numeric(sellingPlanDB$Quantidade)
+    # sellingPlanDB$Valor <- as.numeric(sellingPlanDB$Valor)
+    # sellingPlanDB$Quantidade <- as.numeric(sellingPlanDB$Quantidade)
     
     sellingProductDB$Valor <- as.numeric(sellingProductDB$Valor)
     sellingProductDB$Quantidade <- as.numeric(sellingProductDB$Quantidade)
     
     combined_data <- bind_rows(
       mutate(buyingDB, Type = "Compra"),
-      mutate(sellingPlanDB, Type = "Venda"),
+      #mutate(sellingPlanDB, Type = "Venda"),
       mutate(sellingProductDB, Type = "Venda")
     )
     

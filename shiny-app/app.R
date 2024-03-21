@@ -95,9 +95,9 @@ server <- function(input, output, session) {
           #### Calendar ----
           menuCalendar(),
           #### Cash book ----
-          if(validate()$table.Permissao == "admin"){
-            menuCashBook()
-          },
+          # if(validate()$table.Permissao == "admin"){
+          #   menuCashBook()
+          # },
           #### Simulator ----
           menuSimulator(),
           #### Clients and Plans ----
@@ -119,11 +119,11 @@ server <- function(input, output, session) {
           #### Calendar ----
           calendarMainPage(tabName = "calendar"),
           #### Cash book ----
-          cashbookMainPage(tabName = "cashbook",
-                           sellingProductDB = "data/venda_produto.csv",
-                           sellingPlanDB = "data/venda_plano.csv",
-                           inventoryDB = "data/estoque.csv",
-                           buyingDB = "data/compra.csv"),
+          # cashbookMainPage(tabName = "cashbook",
+          #                  sellingProductDB = "data/venda_produto.csv",
+          #                  sellingPlanDB = "data/venda_plano.csv",
+          #                  inventoryDB = "data/estoque.csv",
+          #                  buyingDB = "data/compra.csv"),
           #### Simulator ----
           simulatorMainPage(tabName = "simulator"),
           #### Clients and Plans ----
@@ -476,11 +476,11 @@ server <- function(input, output, session) {
   ) # Download the report
   
   ### Cash book ----
-  observe({donuts_graph(output, sellsProductTable)}) # Generate the donut graph
-  observe({line_graph(output,
-                      sellingProductDB = sellsProductTable,
-                      sellingPlanDB = planSellHistorical,
-                      buyingDB = bt)}) # Generate the line graph
+  # observe({donuts_graph(output, sellsProductTable)}) # Generate the donut graph
+  # observe({line_graph(output,
+  #                     sellingProductDB = sellsProductTable,
+  #                     sellingPlanDB = planSellHistorical,
+  #                     buyingDB = bt)}) # Generate the line graph
   
 }
 

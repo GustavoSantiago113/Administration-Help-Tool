@@ -284,8 +284,10 @@ add_to_sell_table <- function(sellProductTable, cartTable, client, sellProductTa
   } else{
     parcelas <- input$parcelasVendaProduto
   }
+  dataFim <- ymd(Sys.Date()) %m+% months(parcelas-1)
   
   cartTable$data$Parcelas <- parcelas
+  cartTable$data$Data.Fim <- format(as.Date(dataFim), "%Y-%m-%d")
   
   sellProductTable$data <- rbind(cartTable$data, sellProductTable$data)# Combine the cart table with the sells historic table
   
@@ -293,7 +295,9 @@ add_to_sell_table <- function(sellProductTable, cartTable, client, sellProductTa
            filepath = sellProductTablePath) # Save the combined table
   
   names <- cartTable$data[,1] # Get the names of the products to find them
-
+  
+  inventoryTable$data$Quantidade <- as.numeric(inventoryTable$data$Quantidade)
+  
   newDB <- inventoryTable$data %>%
     filter(Nome %in% names) %>%
     mutate(Quantidade = Quantidade - as.numeric(cartTable$data$Quantidade)) # Find the products and remove the amounts
@@ -357,8 +361,10 @@ add_to_plan <- function(input, clientTable, planTable, clientTablePath, planSell
   } else{
     parcelas <- input$parcelasVendaPlano
   }
+  dataFim <- ymd(Sys.Date()) %m+% months(parcelas-1)
+  data.fim <- format(as.Date(dataFim), "%Y-%m-%d")
   
-  planSellTable$data[nrow(planSellTable$data)+1,] <- c(name, dono, value, date, num_visitas, plano, idCliente, parcelas) # Append the variables to the plan sell table
+  planSellTable$data[nrow(planSellTable$data)+1,] <- c(name, dono, value, date, num_visitas, plano, idCliente, parcelas, data.fim) # Append the variables to the plan sell table
   
   saveData(data = planSellTable$data,
            filepath = planSellTablePath) # Save the plan sells historical
