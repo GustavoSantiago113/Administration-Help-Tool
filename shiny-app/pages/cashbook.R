@@ -4,6 +4,8 @@ library(shinydashboard)
 library(lubridate)
 library(tidyverse)
 library(ggplot2)
+library(plotly)
+library(zoo)
 
 # UI -----
 
@@ -27,6 +29,7 @@ cashbookMainPage <- function(tabName, sellingProductDB, sellingPlanDB, inventory
   sellingPlanDB <- read.csv(sellingPlanDB)
   inventoryDB <- read.csv(inventoryDB)
   buyingDB <- read.csv(buyingDB)
+  growth <- growthing_rate(sellingProductDB, sellingPlanDB)
   
   tabItem(
     tabName = tabName,
@@ -44,7 +47,7 @@ cashbookMainPage <- function(tabName, sellingProductDB, sellingPlanDB, inventory
       column(
         width = 6,
         align = "center",
-        valueBox(value = monthly_profit(sellingProductDB, sellingPlanDB),
+        valueBox(value = round(monthly_profit(sellingProductDB, sellingPlanDB),2),
                  subtitle = paste("Entrada do mes de", month(ymd(Sys.Date()),
                                                              label = TRUE,
                                                              locale = Sys.getlocale("LC_TIME"),
@@ -67,22 +70,25 @@ cashbookMainPage <- function(tabName, sellingProductDB, sellingPlanDB, inventory
       column(
         width = 4,
         align = "center",
-        valueBox(value = stock_value(inventoryDB),
-                 subtitle = "Valor em estoque",
-                 color = "teal",
-                 width = NULL,
-                 icon = icon(name = NULL,
-                             style = "background: url('stock.svg');
-                             height: 60px;
-                             width: 60px;
-                             display: inline-block;
-                             background-repeat: no-repeat;")
-                 )
+        if(growth >= 0){
+          valueBox(value = paste(round(growth, 1), "%", sep = " "),
+                   subtitle = "Comparacao mes anterior",
+                   color = "teal",
+                   width = NULL,
+                   icon = icon("arrow-up"))
+        }else{
+          valueBox(value = paste(round(growth, 1), "%", sep = " "),
+                   subtitle = "Comparacao mes anterior",
+                   color = "teal",
+                   width = NULL,
+                   icon = icon("arrow-down"))
+        }
+        
       ),
       column(
         width = 4,
         align = "center",
-        valueBox(value = savings(sellingProductDB, sellingPlanDB, buyingDB),
+        valueBox(value = round(savings(sellingProductDB, sellingPlanDB, buyingDB),2),
                  subtitle = "Poupanca",
                  color = "teal",
                  width = NULL,
@@ -97,9 +103,9 @@ cashbookMainPage <- function(tabName, sellingProductDB, sellingPlanDB, inventory
       column(
         width = 4,
         align = "center",
-        valueBox(value = monthly_spents(buyingDB),
-                 subtitle = paste("Gastos de", month(ymd(Sys.Date()), 
-                                                    label = TRUE, 
+        valueBox(value = round(monthly_spents(buyingDB),2),
+                 subtitle = paste("Gastos de", month(ymd(Sys.Date()),
+                                                    label = TRUE,
                                                     locale = Sys.getlocale("LC_TIME"),
                                                     abbr = FALSE)),
                  color = "teal",
@@ -142,35 +148,90 @@ monthly_profit <- function(sellingProductDB, sellingPlanDB){
     filter(year(Data.Fim) >= ano,
            month(Data.Fim) >= mes)
   
-  totalProduct <- sum(as.numeric(filteredProductDB$Valor) * as.numeric(filteredProductDB$Quantidade)) / as.numeric(filteredProductDB$Parcelas)
+  totalProduct <- sum(as.numeric(filteredProductDB$Valor) * as.numeric(filteredProductDB$Quantidade) / as.numeric(filteredProductDB$Parcelas))
 
   filteredPlanDB <- sellingPlanDB %>%
     filter(year(Data.Fim) >= ano,
            month(Data.Fim) >= mes)
   
-  totalPlan <- sum(filteredPlanDB$Valor) / as.numeric(filteredPlanDB$Parcelas)
+  totalPlan <- sum(as.numeric(filteredPlanDB$Valor) / as.numeric(filteredPlanDB$Parcelas))
   
   return(totalProduct+totalPlan)
 
 }
 
 ## Stock value ----
-stock_value <- function(inventoryDB){
+growthing_rate <- function(sellingProductDB, sellingPlanDB){
   
-  stock_value <- sum(as.numeric(inventoryDB$Valor) * as.numeric(inventoryDB$Quantidade))
+  sellingProductDB$Data.Fim <- as.Date(sellingProductDB$Data.Fim)
+  sellingPlanDB$Data.Fim <- as.Date(sellingPlanDB$Data.Fim)
+  sellingPlanDB$Data_Inicio <- as.Date(sellingPlanDB$Data_Inicio)
+  sellingProductDB$Data <- as.Date(sellingProductDB$Data)
   
-  return(stock_value)
+  # This month
+  ano <- year(ymd(Sys.Date()))
+  mes <- month(ymd(Sys.Date()))
+  
+  filteredProductDB <- sellingProductDB %>%
+    filter(year(Data.Fim) >= ano,
+           month(Data.Fim) >= mes)
+  
+  totalProduct <- sum(as.numeric(filteredProductDB$Valor) * as.numeric(filteredProductDB$Quantidade) / as.numeric(filteredProductDB$Parcelas))
+  
+  filteredPlanDB <- sellingPlanDB %>%
+    filter(year(Data.Fim) >= ano,
+           month(Data.Fim) >= mes)
+  
+  totalPlan <- sum(as.numeric(filteredPlanDB$Valor) / as.numeric(filteredPlanDB$Parcelas))
+  
+  totalSellsThisMonth <- totalPlan + totalProduct
+  
+  # Last Month
+  lastMonth <- as.Date(Sys.Date()) - months(1)
+  lastMonth <- format(as.Date(lastMonth), "%Y-%m")
+  
+  filteredProductDBLM <- sellingProductDB %>%
+    filter(format(as.Date(Data), "%Y-%m") == lastMonth)
+  
+  totalProductLM <- sum(as.numeric(filteredProductDBLM$Valor) * as.numeric(filteredProductDBLM$Quantidade) / as.numeric(filteredProductDBLM$Parcelas))
+  
+  filteredPlanDBLM <- sellingPlanDB %>%
+    filter(format(as.Date(Data_Inicio), "%Y-%m") == lastMonth)
+  
+  totalPlanLM <- sum(as.numeric(filteredPlanDBLM$Valor) / as.numeric(filteredPlanDBLM$Parcelas))
+  
+  totalSellsLastMonth <- totalPlanLM + totalProductLM
+  
+  # Calculation
+  growth <- (totalSellsThisMonth - totalSellsLastMonth) / totalSellsLastMonth * 100
+  
+  return(growth)
   
 }
 
 ## Savings ----
 savings <- function(sellingProductDB, sellingPlanDB, buyingDB){
   
-  totalProduct <- sum(as.numeric(sellingProductDB$Valor) * as.numeric(sellingProductDB$Quantidade))
+  ano <- year(ymd(Sys.Date()))
+  mes <- month(ymd(Sys.Date()))
   
-  totalPlan <- sum(as.numeric(sellingPlanDB$Valor))
+  filteredProductDB <- sellingProductDB %>%
+    filter(year(Data.Fim) >= ano,
+           month(Data.Fim) >= mes)
   
-  totalCompra <- sum(as.numeric(buyingDB$Valor.de.Compra) * as.numeric(buyingDB$Quantidade))
+  totalProduct <- sum(as.numeric(filteredProductDB$Valor) * as.numeric(filteredProductDB$Quantidade) / as.numeric(filteredProductDB$Parcelas))
+  
+  filteredPlanDB <- sellingPlanDB %>%
+    filter(year(Data.Fim) >= ano,
+           month(Data.Fim) >= mes)
+  
+  totalPlan <- sum(as.numeric(filteredPlanDB$Valor) / as.numeric(filteredPlanDB$Parcelas))
+  
+  filteredBuyingDB <- buyingDB %>%
+    filter(year(Data.Fim) >= ano,
+           month(Data.Fim) >= mes)
+  
+  totalCompra <- sum(as.numeric(filteredBuyingDB$Valor.de.Compra) * as.numeric(filteredBuyingDB$Quantidade) / as.numeric(filteredBuyingDB$Parcelas))
   
   return(totalProduct+totalPlan-totalCompra)
   
@@ -184,11 +245,11 @@ monthly_spents <- function(buyingDB){
   
   buyingDB$Data <- as.Date(buyingDB$Data, format = "%Y-%m-%d")
   
-  filteredbuyingDB <- buyingDB %>%
-    filter(year(Data) == year,
-           month(Data) == month)
+  filteredBuyingDB <- buyingDB %>%
+    filter(year(Data) >= year,
+           month(Data) >= month)
   
-  totalProduct <- sum(as.numeric(filteredbuyingDB$Valor.de.Compra) * as.numeric(filteredbuyingDB$Quantidade))
+  totalProduct <- sum(as.numeric(filteredBuyingDB$Valor.de.Compra) * as.numeric(filteredBuyingDB$Quantidade) / as.numeric(filteredBuyingDB$Parcelas))
   
   return(totalProduct)
   
@@ -198,32 +259,30 @@ monthly_spents <- function(buyingDB){
 donuts_graph <- function(output, sellingProductDB){
   
   output$donutPlot <- renderUI({
-    withSpinner(plotOutput("donutMaking"), size = 0.4)
+    withSpinner(plotlyOutput("donutMaking"), size = 0.4)
   })
   
-  output$donutMaking <- renderPlot({
+  output$donutMaking <- renderPlotly({
     
     sellingProductDB$data$Quantidade <- as.numeric(sellingProductDB$data$Quantidade)
     
     data <- sellingProductDB$data %>%
       dplyr::select(Categoria, Quantidade)
     
-    graph <- ggplot(data, aes(x = '', y = Quantidade, fill=Categoria)) +
-      ggtitle("Qual produto vende mais?")+
-      theme(axis.text = element_rect(fill = "#ecf3f1"),
-            axis.title = element_rect(fill = "#ecf3f1"),
-            axis.ticks = element_rect(fill = "#ecf3f1"),
-            panel.grid  = element_rect(fill = "#ecf3f1"),
-            legend.position="none",
-            line = element_rect(fill = "#ecf3f1")
-      )+
-      geom_bar(stat = "identity", width = 1) +
-      coord_polar(theta = "y") +
-      scale_fill_brewer(palette = "Dark2") +
-      theme_void()
+    categoria_totals <- aggregate(Quantidade ~ Categoria, data = data, FUN = sum)
     
-    return(graph)
+    plot <- plot_ly(labels = categoria_totals$Categoria, 
+                    values = categoria_totals$Quantidade, 
+                    type = 'pie', 
+                    hole = 0.6) %>%
+      layout(title = "Qual vende mais?",
+             showlegend = TRUE,
+             xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+             yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+             paper_bgcolor = "#ecf0f5",  # Background color of the entire plot area
+             plot_bgcolor = "#ecf0f5")
     
+    plot
     
   })
   
@@ -234,61 +293,77 @@ donuts_graph <- function(output, sellingProductDB){
 line_graph <- function(output, sellingProductDB, sellingPlanDB, buyingDB){
   
   output$linePlot <- renderUI({
-    withSpinner(plotOutput("lineMaking"), size = 0.4)
+    withSpinner(plotlyOutput("lineMaking"), size = 0.4)
   })
   
-  output$lineMaking <- renderPlot({
-  
+  output$lineMaking <- renderPlotly({
+    
+    # Product
     sellingProductDB$data$Data <- as.Date(sellingProductDB$data$Data)
     
-    sellingProductDB <- sellingProductDB$data %>%
-      select(Quantidade,Valor,Data)
+    sellingProduct <- sellingProductDB$data %>%
+      mutate(iD = row_number()) %>%
+      group_by(iD) %>%
+      slice(rep(row_number(), time=Parcelas)) %>%
+      mutate(Data = Data + months(row_number() - 1),
+             Valor = Valor / Parcelas * Quantidade) %>%
+      ungroup()
     
-    # sellingPlanDB$data$Data <- as.Date(sellingPlanDB$data$Data_Inicio)
-    # 
-    # sellingPlanDB <- sellingPlanDB$data %>%
-    #   select(Valor,Data)
-    # 
-    # sellingPlanDB$Quantidade <- 1
+    # Plan
+    sellingPlanDB$data$Data <- as.Date(sellingPlanDB$data$Data_Inicio)
     
-    buyingDB$data$Data <- as.Date(buyingDB$data$Data, format = "%Y-%m-%d")
+    sellingPlan <- sellingPlanDB$data %>%
+      mutate(Quantidade = 1) %>%
+      mutate(iD = row_number()) %>%
+      group_by(iD) %>%
+      slice(rep(row_number(), time=Parcelas)) %>%
+      mutate(Data = Data + months(row_number() - 1),
+             Valor = Valor / Parcelas * Quantidade) %>%
+      ungroup()
     
-    buyingDB <- buyingDB$data %>%
-      select(Quantidade,Valor.de.Compra,Data) %>%
-      rename(Valor = Valor.de.Compra)
+    # Buying
+    buyingDB$data$Data <- as.Date(buyingDB$data$Data)
     
-    buyingDB$Valor <- as.numeric(buyingDB$Valor)
-    buyingDB$Quantidade <- as.numeric(buyingDB$Quantidade)
-    
-    # sellingPlanDB$Valor <- as.numeric(sellingPlanDB$Valor)
-    # sellingPlanDB$Quantidade <- as.numeric(sellingPlanDB$Quantidade)
-    
-    sellingProductDB$Valor <- as.numeric(sellingProductDB$Valor)
-    sellingProductDB$Quantidade <- as.numeric(sellingProductDB$Quantidade)
+    buying <- buyingDB$data %>%
+      mutate(iD = row_number()) %>%
+      group_by(iD) %>%
+      slice(rep(row_number(), time=Parcelas)) %>%
+      mutate(Data = Data + months(row_number() - 1),
+             Valor = Valor.de.Compra / Parcelas * Quantidade) %>%
+      ungroup()
     
     combined_data <- bind_rows(
-      mutate(buyingDB, Type = "Compra"),
-      #mutate(sellingPlanDB, Type = "Venda"),
-      mutate(sellingProductDB, Type = "Venda")
+      mutate(buying, Type = "Compra"),
+      mutate(sellingPlan, Type = "Venda"),
+      mutate(sellingProduct, Type = "Venda")
     )
     
+    yearMonths <- c(as.Date(Sys.Date()) - months(5), as.Date(Sys.Date()) + months(5))
+    Months <- as.Date(paste(yearMonths, "-01", sep=""))
+    
     combined_data <- combined_data %>%
-      mutate(Month = format(Data, "%Y/%m"),
-             MonthlyAmountValue = Quantidade * Valor) %>%
+      mutate(Month = format(Data, "%Y-%m")) %>%
       group_by(Type, Month) %>%
-      summarise(MeanAmountValue = mean(MonthlyAmountValue))
+      summarise(Valor = sum(Valor)) %>%
+      filter(as.Date(paste(Month, "-01", sep="")) >= Months[1],
+             as.Date(paste(Month, "-01", sep="")) <= Months[2])
     
     # Create Line Graph
-    graph <- ggplot(combined_data, aes(x = Month, y = MeanAmountValue, color = Type, group = Type)) +
+    graph <- ggplot(combined_data, aes(x = Month, y = Valor, color = Type, group = Type)) +
       geom_line() +
       geom_point() +
       labs(title = "Compra x Venda",
            x = "Data",
            y = "Valor",
            color = "Tipo") +
-      theme_minimal()
+      theme_minimal()+
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+            plot.background = element_rect(fill = "#ecf0f5"),
+            panel.background = element_rect(fill = "#ecf0f5",
+                                            colour = "#ecf0f5",
+                                            size = 0.5, linetype = "solid"))
     
-    return(graph)
+    return(ggplotly(graph))
   })
   
 }
